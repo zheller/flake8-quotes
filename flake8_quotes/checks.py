@@ -12,7 +12,7 @@ def check_quotes(logical_line):
     if logical_line.strip().startswith('#'):
         return
 
-    # if it's a multilogical_line string, is ok to have doublequotes
+    # if it's a multilogical_line string, it is ok to have doublequotes
     if logical_line.find('"""') != -1:
         return
 
