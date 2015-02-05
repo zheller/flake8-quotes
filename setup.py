@@ -1,7 +1,5 @@
 import io
-
 from setuptools import setup
-
 import flake8_quotes
 
 
@@ -15,7 +13,7 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 
-long_description = read('README')
+long_description = read('README.md')
 
 
 setup(
@@ -27,12 +25,12 @@ setup(
     ],
     url='http://github.com/zheller/flake8-quotes/',
     long_description=long_description,
-    description="Flake8 lint for double quotes.",
-    packages=['flake8_quotes'],
+    description='Flake8 lint for double quotes.',
+    py_modules=['flake8_quotes'],
     include_package_data=True,
     entry_points={
         'flake8.extension': [
-            'flake8_quotes = flake8_quotes:check_quotes',
+            'flake8_quotes = flake8_quotes:DoubleQuoteChecker',
         ],
     },
     classifiers=[
