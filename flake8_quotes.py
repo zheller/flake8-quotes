@@ -29,31 +29,31 @@ class DoubleQuoteChecker(object):
 
 def get_noqa_lines(file_contents):
     tokens = tokenize.generate_tokens(lambda L=iter(file_contents): next(L))
-    return [token.start[0]
+    return [token[2][0]
             for token in tokens
-            if token.type == tokenize.COMMENT and token.string.endswith('noqa')]
+            if token[0] == tokenize.COMMENT and token[1].endswith('noqa')]
 
 
 def get_double_quotes_errors(file_contents):
     tokens = tokenize.generate_tokens(lambda L=iter(file_contents): next(L))
     for token in tokens:
-        if token.type != tokenize.STRING:
+        if token[0] != tokenize.STRING:
             # ignore non strings
             continue
 
-        if not token.string.startswith('"'):
+        if not token[1].startswith('"'):
             # ignore strings that do not start with doubles
             continue
 
-        if token.string.startswith('"""'):
+        if token[1].startswith('"""'):
             # ignore multiline strings
             continue
 
-        if "'" in token.string:
+        if "'" in token[1]:
             # ignore singles wrapped in doubles
             continue
 
-        start_row, start_col = token.start
+        start_row, start_col = token[2]
         yield {
             'message': 'Q000 Remove Double quotes.',
             'line': start_row,
