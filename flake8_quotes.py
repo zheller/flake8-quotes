@@ -28,34 +28,61 @@ class DoubleQuoteChecker(object):
 
 
 def get_noqa_lines(file_contents):
-    tokens = tokenize.generate_tokens(lambda L=iter(file_contents): next(L))
-    return [token[2][0]
+    tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
+    return [token.start_row
             for token in tokens
-            if token[0] == tokenize.COMMENT and token[1].endswith('noqa')]
+            if token.type == tokenize.COMMENT and token.string.endswith('noqa')]
 
 
 def get_double_quotes_errors(file_contents):
-    tokens = tokenize.generate_tokens(lambda L=iter(file_contents): next(L))
+    tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
     for token in tokens:
-        if token[0] != tokenize.STRING:
+
+        if token.type != tokenize.STRING:
             # ignore non strings
             continue
 
-        if not token[1].startswith('"'):
+        if not token.string.startswith('"'):
             # ignore strings that do not start with doubles
             continue
 
-        if token[1].startswith('"""'):
+        if token.string.startswith('"""'):
             # ignore multiline strings
             continue
 
-        if "'" in token[1]:
+        if "'" in token.string:
             # ignore singles wrapped in doubles
             continue
 
-        start_row, start_col = token[2]
+        start_row, start_col = token.start
         yield {
             'message': 'Q000 Remove Double quotes.',
             'line': start_row,
             'col': start_col
         }
+
+
+class Token:
+    '''Python 2 and 3 compatible token'''
+    def __init__(self, token):
+        self.token = token
+
+    @property
+    def type(self):
+        return self.token[0]
+
+    @property
+    def string(self):
+        return self.token[1]
+
+    @property
+    def start(self):
+        return self.token[2]
+
+    @property
+    def start_row(self):
+        return self.token[2][0]
+
+    @property
+    def start_col(self):
+        return self.token[2][1]

@@ -13,7 +13,7 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 
-long_description = read('README.md')
+long_description = read('README.rst')
 
 
 setup(
@@ -27,6 +27,7 @@ setup(
     long_description=long_description,
     description='Flake8 lint for double quotes.',
     py_modules=['flake8_quotes'],
+    test_suite='test',
     include_package_data=True,
     entry_points={
         'flake8.extension': [
