@@ -25,13 +25,13 @@ setup(
     ],
     url='http://github.com/zheller/flake8-quotes/',
     long_description=long_description,
-    description='Flake8 lint for double quotes.',
+    description='Flake8 lint for quotes.',
     py_modules=['flake8_quotes'],
     test_suite='test',
     include_package_data=True,
     entry_points={
         'flake8.extension': [
-            'flake8_quotes = flake8_quotes:DoubleQuoteChecker',
+            'flake8_quotes = flake8_quotes:QuoteChecker',
         ],
     },
     classifiers=[

@@ -1,14 +1,29 @@
-Flake8 Extension to lint for double quotes.
+Flake8 Extension to lint for quotes.
 ===========================================
 
 Usage
 -----
 
-If you are using flake8 its as easy as:
+If you are using flake8 it's as easy as:
 
 .. code:: shell
 
     pip install flake8-quotes
 
-Now you don’t need to worry about people like @sectioneight constantly
+Now you don't need to worry about people like @sectioneight constantly
 complaining that you are using double-quotes and not single-quotes.
+
+Configuration
+-------------
+
+By default, we expect single quotes (') and look for unwanted double quotes ("). To expect double quotes (") and find unwanted single quotes ('), use the CLI option:
+
+.. code:: shell
+
+    flake8 --quotes '"'
+
+or configuration option in `tox.ini`/`setup.cfg`.
+
+.. code:: ini
+
+    quotes = "

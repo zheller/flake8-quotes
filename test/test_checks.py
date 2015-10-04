@@ -1,32 +1,62 @@
-import flake8_quotes
+from flake8_quotes import QuoteChecker
 import os
 from unittest import TestCase
 
 
 class TestChecks(TestCase):
-
     def test_get_noqa_lines(self):
-        self.assertEqual(flake8_quotes.get_noqa_lines(get_file_contents('data/no_qa.py')), [2])
+        checker = QuoteChecker(None, filename=get_absolute_path('data/no_qa.py'))
+        self.assertEqual(checker.get_noqa_lines(checker.get_file_contents()), [2])
+
+
+class DoublesTestChecks(TestCase):
+    def setUp(self):
+        class DoublesOptions():
+            quotes = '\''
+        QuoteChecker.parse_options(DoublesOptions)
 
     def test_multiline_string(self):
-        self.assertEqual(list(flake8_quotes.get_double_quotes_errors(get_file_contents('data/multiline_string.py'))), [])
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_multiline_string.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
 
     def test_wrapped(self):
-        self.assertEqual(list(flake8_quotes.get_double_quotes_errors(get_file_contents('data/wrapped.py'))), [])
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_wrapped.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
 
     def test_doubles(self):
-        self.assertEqual(list(flake8_quotes.get_double_quotes_errors(get_file_contents('data/doubles.py'))), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove Double quotes.'}
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
+            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes.'}
         ])
 
-    def test_noqua_doubles(self):
-        checker = flake8_quotes.DoubleQuoteChecker(None, get_absolute_path('data/doubles_noqa.py'))
+    def test_noqa_doubles(self):
+        checker = QuoteChecker(None, get_absolute_path('data/doubles_noqa.py'))
         self.assertEqual(list(checker.run()), [])
 
 
-def get_file_contents(filepath):
-    with open(get_absolute_path(filepath), 'r') as content_file:
-        return content_file.readlines()
+class SinglesTestChecks(TestCase):
+    def setUp(self):
+        class SinglesOptions():
+            quotes = '"'
+        QuoteChecker.parse_options(SinglesOptions)
+
+    def test_multiline_string(self):
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_multiline_string.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+
+    def test_wrapped(self):
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_wrapped.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+
+    def test_singles(self):
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
+            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes.'}
+        ])
+
+    def test_noqa_singles(self):
+        checker = QuoteChecker(None, get_absolute_path('data/singles_noqa.py'))
+        self.assertEqual(list(checker.run()), [])
 
 
 def get_absolute_path(filepath):
