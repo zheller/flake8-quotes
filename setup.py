@@ -19,6 +19,7 @@ long_description = read('README.rst')
 setup(
     name='flake8-quotes',
     author='Zachary Wright Heller',
+    author_email='zheller@gmail.com',
     version=flake8_quotes.__version__,
     install_requires=[
         'setuptools',
@@ -34,6 +35,9 @@ setup(
             'flake8_quotes = flake8_quotes:QuoteChecker',
         ],
     },
+    license='MIT',
+    zip_safe=True,
+    keywords='flake8 lint quotes',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
@@ -42,6 +46,9 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Software Development :: Quality Assurance',
     ]

@@ -1,0 +1,6 @@
+include LICENSE
+include tox.ini
+
+recursive-include test *.py
+
+exclude release.sh
