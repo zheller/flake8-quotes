@@ -1,6 +1,6 @@
-from sys import stdin
 import tokenize
 
+import pep8
 
 __version__ = '0.1.2'
 
@@ -26,7 +26,7 @@ class QuoteChecker(object):
     }
 
     def __init__(self, tree, filename='(none)', builtins=None):
-        self.file = (filename == 'stdin' and stdin) or filename
+        self.filename = filename
 
     @classmethod
     def add_options(cls, parser):
@@ -39,14 +39,14 @@ class QuoteChecker(object):
         cls.quotes = cls.QUOTES[options.quotes]
 
     def get_file_contents(self):
-        with open(self.file, 'r') as file_to_check:
-            return file_to_check.readlines()
+        if self.filename in ('stdin', '-', None):
+            self.filename = 'stdin'
+            return pep8.stdin_get_value().splitlines(True)
+        else:
+            return pep8.readlines(self.filename)
 
     def run(self):
-        if self.file == stdin:
-            file_contents = self.file
-        else:
-            file_contents = self.get_file_contents()
+        file_contents = self.get_file_contents()
 
         noqa_line_numbers = self.get_noqa_lines(file_contents)
         errors = self.get_quotes_errors(file_contents)
