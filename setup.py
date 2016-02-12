@@ -22,6 +22,7 @@ setup(
     author_email='zheller@gmail.com',
     version=flake8_quotes.__version__,
     install_requires=[
+        'pep8',
         'setuptools',
     ],
     url='http://github.com/zheller/flake8-quotes/',
