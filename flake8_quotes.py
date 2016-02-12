@@ -40,7 +40,6 @@ class QuoteChecker(object):
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
-            self.filename = 'stdin'
             return pep8.stdin_get_value().splitlines(True)
         else:
             return pep8.readlines(self.filename)
