@@ -1,5 +1,16 @@
+sudo: false
 language: python
+python:
+  - "2.7"
+  - "3.3"
+
 install:
-  - pip install tox
+  # Install our dependencies
+  - pip install -r requirements-dev.txt
+
+  # Install `flake8-quotes`
+  - python setup.py develop
+
 script:
-  - tox
+  # Run our tests
+  - ./test.sh

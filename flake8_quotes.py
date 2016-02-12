@@ -32,7 +32,7 @@ class QuoteChecker(object):
     def add_options(cls, parser):
         parser.add_option('--quotes', default='\'', action='store',
                           help='Quote to expect in all files (default: \')')
-        parser.config_options.append("quotes")
+        parser.config_options.append('quotes')
 
     @classmethod
     def parse_options(cls, options):

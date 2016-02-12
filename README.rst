@@ -1,6 +1,10 @@
 Flake8 Extension to lint for quotes.
 ===========================================
 
+.. image:: https://travis-ci.org/zheller/flake8-quotes.svg?branch=master
+   :target: https://travis-ci.org/zheller/flake8-quotes
+   :alt: Build Status
+
 Usage
 -----
 
