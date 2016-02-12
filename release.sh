@@ -10,14 +10,8 @@ if test "$version" = ""; then
   exit 1
 fi
 
-# Bump the version via regexp
-sed -E "s/^(__version__ = ')[0-9]+\.[0-9]+\.[0-9]+(')$/\1$version\2/" flake8_quotes.py --in-place
-
-# Verify our version made it into the file
-if ! grep "$version" flake8_quotes.py &> /dev/null; then
-  echo "Expected \`__version__\` to update via \`sed\` but it didn't" 1>&2
-  exit 1
-fi
+# All references to a version number are derived from this file.
+echo "$version" > VERSION
 
 # Commit the change
 git add flake8_quotes.py

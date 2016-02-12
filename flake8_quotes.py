@@ -1,8 +1,11 @@
+import os
 import tokenize
 
 import pep8
 
-__version__ = '0.2.2'
+
+with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r') as handle:
+    __version__ = handle.read().strip()
 
 
 class QuoteChecker(object):
