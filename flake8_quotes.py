@@ -1,11 +1,10 @@
-import os
 import tokenize
 
 import pep8
+import pkg_resources
 
 
-with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r') as handle:
-    __version__ = handle.read().strip()
+__version__ = pkg_resources.get_distribution('flake8_quotes').version
 
 
 class QuoteChecker(object):
