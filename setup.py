@@ -1,5 +1,8 @@
 import io
+import os
 from setuptools import setup
+
+__dir__ = os.path.dirname(__file__)
 
 
 def read(*filenames, **kwargs):
@@ -12,23 +15,25 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 
-LONG_DESCRIPTION = read('README.rst')
-VERSION = read('VERSION').strip()
+LONG_DESCRIPTION = read(os.path.join(__dir__, 'README.rst'))
+
+about = {}
+with open(os.path.join(__dir__, 'flake8_quotes', '__about__.py')) as file:
+    exec(file.read(), about)
 
 
 setup(
     name='flake8-quotes',
     author='Zachary Wright Heller',
     author_email='zheller@gmail.com',
-    version=VERSION,
+    version=about['__version__'],
     install_requires=[
         'pep8',
-        'setuptools',
     ],
     url='http://github.com/zheller/flake8-quotes/',
     long_description=LONG_DESCRIPTION,
     description='Flake8 lint for quotes.',
-    py_modules=['flake8_quotes'],
+    packages=['flake8_quotes'],
     test_suite='test',
     include_package_data=True,
     entry_points={

@@ -1,7 +1,4 @@
 include LICENSE
-include VERSION
-include tox.ini
 
+recursive-include flake8_quotes *.py
 recursive-include test *.py
-
-exclude release.sh

@@ -1,11 +1,8 @@
-import os
 import tokenize
 
 import pep8
 
-
-with open(os.path.join(os.path.dirname(__file__), 'VERSION'), 'r') as handle:
-    __version__ = handle.read().strip()
+from flake8_quotes.__about__ import __version__
 
 
 class QuoteChecker(object):
