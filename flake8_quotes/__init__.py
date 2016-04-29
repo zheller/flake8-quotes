@@ -12,28 +12,28 @@ class QuoteChecker(object):
     QUOTES = {
         # When user wants only single quotes
         '\'': {
-            'allow': '\'',
-            'fail': '"',
+            'good': '\'',
+            'bad': '"',
         },
 
         # When user wants only double quotes
         '"': {
-            'allow': '"',
-            'fail': '\'',
+            'good': '"',
+            'bad': '\'',
         },
     }
 
     MULTILINE_QUOTES = {
         # When user wants only single multiline quotes
         '\'': {
-            'allow': '\'\'\'',
-            'fail': '"""'
+            'good': '\'\'\'',
+            'bad': '"""'
         },
 
         # When user wants only double multiline quotes
         '"': {
-            'allow': '"""',
-            'fail': '\'\'\''
+            'good': '"""',
+            'bad': '\'\'\''
         }
     }
 
@@ -88,15 +88,15 @@ class QuoteChecker(object):
                 # ignore non strings
                 continue
 
-            if not token.string.startswith(self.quotes['fail']) and not token.string.startswith(self.multiline_quotes['fail']):
+            if not token.string.startswith(self.quotes['bad']) and not token.string.startswith(self.multiline_quotes['bad']):
                 # ignore strings that do not start with our quotes (both single and multiline)
                 continue
 
-            if self.quotes['allow'] in token.string:
+            if self.quotes['good'] in token.string:
                 # ignore quotes wrapped in our quotes (e.g. `'` in `"it's"`)
                 continue
 
-            if self.multiline_quotes['allow'] in token.string:
+            if self.multiline_quotes['good'] in token.string:
                 # ignore multiline quotes wrapped in our quotes
                 continue
 
