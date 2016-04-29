@@ -12,7 +12,7 @@ class TestChecks(TestCase):
 class DoublesTestChecks(TestCase):
     def setUp(self):
         class DoublesOptions():
-            inline_quotes = '\''
+            quotes = '\''
         QuoteChecker.parse_options(DoublesOptions)
 
     def test_multiline_string(self):
@@ -37,7 +37,7 @@ class DoublesTestChecks(TestCase):
 class DoublesMixedTestChecks(TestCase):
     def setUp(self):
         class DoublesMixedOptions():
-            inline_quotes = '\''
+            quotes = '\''
             multiline_quotes = '"'
         QuoteChecker.parse_options(DoublesMixedOptions)
 
@@ -49,7 +49,7 @@ class DoublesMixedTestChecks(TestCase):
 class SinglesTestChecks(TestCase):
     def setUp(self):
         class SinglesOptions():
-            inline_quotes = '"'
+            quotes = '"'
         QuoteChecker.parse_options(SinglesOptions)
 
     def test_multiline_string(self):
@@ -74,7 +74,7 @@ class SinglesTestChecks(TestCase):
 class SinglesMixedTestChecks(TestCase):
     def setUp(self):
         class SinglesMixedOptions():
-            inline_quotes = '"'
+            quotes = '"'
             multiline_quotes = '\''
         QuoteChecker.parse_options(SinglesMixedOptions)
 
