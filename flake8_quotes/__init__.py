@@ -10,15 +10,13 @@ class QuoteChecker(object):
     version = __version__
 
     QUOTES = {
-        # Allow single quotes
-        # Fail on double quotes
+        # When user wants only single quotes
         '\'': {
             'allow': '\'',
             'fail': '"',
         },
 
-        # Allow double quotes
-        # Fail on single quotes
+        # When user wants only double quotes
         '"': {
             'allow': '"',
             'fail': '\'',
@@ -26,15 +24,13 @@ class QuoteChecker(object):
     }
 
     MULTILINE_QUOTES = {
-        # Allow single multiline quotes
-        # Fail on double multiline quotes
+        # When user wants only single multiline quotes
         '\'': {
             'allow': '\'\'\'',
             'fail': '"""'
         },
 
-        # Allow double multiline quotes
-        # Fail on single multiline quotes
+        # When user wants only double multiline quotes
         '"': {
             'allow': '"""',
             'fail': '\'\'\''
