@@ -55,7 +55,7 @@ class QuoteChecker(object):
         if hasattr(options, 'multiline_quotes'):
             multiline_quotes = options.multiline_quotes
         else:
-            multiline_quotes = options.quotes
+            multiline_quotes = None
 
         cls.quotes = cls.QUOTES[options.quotes]
         cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes] if multiline_quotes is not None else None
