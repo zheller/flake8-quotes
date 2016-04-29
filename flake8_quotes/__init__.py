@@ -38,7 +38,7 @@ class QuoteChecker(object):
 
     @classmethod
     def parse_options(cls, options):
-        if hasattr(options, 'quotes'):
+        if hasattr(options, 'quotes') and options.quotes is not None:
             cls.inline_quotes = cls.INLINE_QUOTES[options.quotes]
         else:
             cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
