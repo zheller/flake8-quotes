@@ -10,19 +10,35 @@ class QuoteChecker(object):
     version = __version__
 
     QUOTES = {
-        # When user wants only single quotes
+        # Allow single quotes
+        # Fail on double quotes
         '\'': {
-            'good_single': '\'',
-            'good_multiline': '\'\'\'',
-            'bad_single': '"',
-            'bad_multiline': '"""',
+            'allow': '\'',
+            'fail': '"',
         },
+
+        # Allow double quotes
+        # Fail on single quotes
         '"': {
-            'good_single': '"',
-            'good_multiline': '"""',
-            'bad_single': '\'',
-            'bad_multiline': '\'\'\'',
+            'allow': '"',
+            'fail': '\'',
         },
+    }
+
+    MULTILINE_QUOTES = {
+        # Allow single multiline quotes
+        # Fail on double multiline quotes
+        '\'': {
+            'allow': '\'\'\'',
+            'fail': '"""'
+        },
+
+        # Allow double multiline quotes
+        # Fail on single multiline quotes
+        '"': {
+            'allow': '"""',
+            'fail': '\'\'\''
+        }
     }
 
     def __init__(self, tree, filename='(none)', builtins=None):
@@ -32,11 +48,19 @@ class QuoteChecker(object):
     def add_options(cls, parser):
         parser.add_option('--quotes', default='\'', action='store',
                           help='Quote to expect in all files (default: \')')
-        parser.config_options.append('quotes')
+        parser.add_option('--multiline-quotes', default='\'', action='store',
+                          help='Multiline quote to expect in all files (default: \')')
+        parser.config_options.extend(['quotes', 'multiline_quotes'])
 
     @classmethod
     def parse_options(cls, options):
+        if hasattr(options, 'multiline_quotes'):
+            multiline_quotes = options.multiline_quotes
+        else:
+            multiline_quotes = options.quotes
+
         cls.quotes = cls.QUOTES[options.quotes]
+        cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes]
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -68,16 +92,16 @@ class QuoteChecker(object):
                 # ignore non strings
                 continue
 
-            if not token.string.startswith(self.quotes['bad_single']):
-                # ignore strings that do not start with our quotes
+            if not token.string.startswith(self.quotes['fail']) and not token.string.startswith(self.multiline_quotes['fail']):
+                # ignore strings that do not start with our quotes (both single and multiline)
                 continue
 
-            if token.string.startswith(self.quotes['bad_multiline']):
-                # ignore multiline strings
+            if self.quotes['allow'] in token.string:
+                # ignore quotes wrapped in our quotes (e.g. `'` in `"it's"`)
                 continue
 
-            if self.quotes['good_single'] in token.string:
-                # ignore alternate quotes wrapped in our quotes (e.g. `'` in `"it's"`)
+            if self.multiline_quotes['allow'] in token.string:
+                # ignore multiline quotes wrapped in our quotes
                 continue
 
             start_row, start_col = token.start

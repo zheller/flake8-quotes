@@ -34,6 +34,18 @@ class DoublesTestChecks(TestCase):
         self.assertEqual(list(checker.run()), [])
 
 
+class DoublesMixedTestChecks(TestCase):
+    def setUp(self):
+        class DoublesMixedOptions():
+            quotes = '\''
+            multiline_quotes = '"'
+        QuoteChecker.parse_options(DoublesMixedOptions)
+
+    def test_mixed(self):
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_mixed.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
+
+
 class SinglesTestChecks(TestCase):
     def setUp(self):
         class SinglesOptions():
@@ -57,6 +69,18 @@ class SinglesTestChecks(TestCase):
     def test_noqa_singles(self):
         checker = QuoteChecker(None, get_absolute_path('data/singles_noqa.py'))
         self.assertEqual(list(checker.run()), [])
+
+
+class SinglesMixedTestChecks(TestCase):
+    def setUp(self):
+        class SinglesMixedOptions():
+            quotes = '"'
+            multiline_quotes = '\''
+        QuoteChecker.parse_options(SinglesMixedOptions)
+
+    def test_mixed(self):
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_mixed.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
 
 
 def get_absolute_path(filepath):
