@@ -44,7 +44,7 @@ class QuoteChecker(object):
     def add_options(cls, parser):
         parser.add_option('--quotes', default='\'', action='store',
                           help='Quote to expect in all files (default: \')')
-        parser.add_option('--multiline-quotes', default='', action='store',
+        parser.add_option('--multiline-quotes', action='store',
                           help='Multiline quote to expect in all files (default: any)')
         parser.config_options.extend(['quotes', 'multiline_quotes'])
 
@@ -55,7 +55,7 @@ class QuoteChecker(object):
         if hasattr(options, 'multiline_quotes'):
             multiline_quotes = options.multiline_quotes
 
-            if len(multiline_quotes) == 0:
+            if multiline_quotes is None:
                 multiline_quotes = options.quotes
             else:
                 multiline_ignored = False
