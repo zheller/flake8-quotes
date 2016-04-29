@@ -58,11 +58,7 @@ class QuoteChecker(object):
             multiline_quotes = options.inline_quotes
 
         cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
-
-        if multiline_quotes is not None:
-            cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes]
-        else:
-            cls.multiline_quotes = None
+        cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes] if multiline_quotes is not None else None
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
