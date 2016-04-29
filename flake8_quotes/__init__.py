@@ -30,13 +30,13 @@ class QuoteChecker(object):
 
     @classmethod
     def add_options(cls, parser):
-        parser.add_option('--quotes', default='\'', action='store',
+        parser.add_option('--quotes', default='\'', action='store', dest='inline_quotes',
                           help='Quote to expect in all files (default: \')')
         parser.config_options.append('quotes')
 
     @classmethod
     def parse_options(cls, options):
-        cls.quotes = cls.QUOTES[options.quotes]
+        cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -68,15 +68,15 @@ class QuoteChecker(object):
                 # ignore non strings
                 continue
 
-            if not token.string.startswith(self.quotes['bad_single']):
+            if not token.string.startswith(self.inline_quotes['bad_single']):
                 # ignore strings that do not start with our quotes
                 continue
 
-            if token.string.startswith(self.quotes['bad_multiline']):
+            if token.string.startswith(self.inline_quotes['bad_multiline']):
                 # ignore multiline strings
                 continue
 
-            if self.quotes['good_single'] in token.string:
+            if self.inline_quotes['good_single'] in token.string:
                 # ignore alternate quotes wrapped in our quotes (e.g. `'` in `"it's"`)
                 continue
 
