@@ -42,7 +42,7 @@ class QuoteChecker(object):
 
     @classmethod
     def add_options(cls, parser):
-        parser.add_option('--quotes', default='\'', action='store',
+        parser.add_option('--quotes', default='\'', action='store', dest='inline_quotes',
                           help='Quote to expect in all files (default: \')')
         parser.add_option('--multiline-quotes', action='store',
                           help='Multiline quote to expect in all files (disabled by default)')
@@ -56,13 +56,13 @@ class QuoteChecker(object):
             multiline_quotes = options.multiline_quotes
 
             if multiline_quotes is None:
-                multiline_quotes = options.quotes
+                multiline_quotes = options.inline_quotes
             else:
                 multiline_ignored = False
         else:
-            multiline_quotes = options.quotes
+            multiline_quotes = options.inline_quotes
 
-        cls.quotes = cls.INLINE_QUOTES[options.quotes]
+        cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
         cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes]
         cls.multiline_ignored = multiline_ignored
 
@@ -96,7 +96,7 @@ class QuoteChecker(object):
                 # ignore non strings
                 continue
 
-            if not token.string.startswith(self.quotes['bad']) and not token.string.startswith(self.multiline_quotes['bad']):
+            if not token.string.startswith(self.inline_quotes['bad']) and not token.string.startswith(self.multiline_quotes['bad']):
                 # ignore strings that do not start with our quotes (both single and multiline)
                 continue
 
@@ -104,7 +104,7 @@ class QuoteChecker(object):
                 # ignore any type of multiline if multilines are being ignored
                 continue
 
-            if self.quotes['good'] in token.string:
+            if self.inline_quotes['good'] in token.string:
                 # ignore quotes wrapped in our quotes (e.g. `'` in `"it's"`)
                 continue
 
