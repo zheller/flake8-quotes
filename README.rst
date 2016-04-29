@@ -5,6 +5,10 @@ Flake8 Extension to lint for quotes.
    :target: https://travis-ci.org/zheller/flake8-quotes
    :alt: Build Status
 
+Deprecation notice in 0.3.0
+---------------------------
+To anticipate multiline support, we are renaming ``--quotes`` to ``--inline-quotes``. Please adjust your configurations appropriately.
+
 Usage
 -----
 
@@ -24,10 +28,10 @@ By default, we expect single quotes (') and look for unwanted double quotes (").
 
 .. code:: shell
 
-    flake8 --quotes '"'
+    flake8 --inline-quotes '"'
 
 or configuration option in `tox.ini`/`setup.cfg`.
 
 .. code:: ini
 
-    quotes = "
+    inline-quotes = "

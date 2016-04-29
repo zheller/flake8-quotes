@@ -1,4 +1,5 @@
 import tokenize
+import warnings
 
 import pep8
 
@@ -39,6 +40,9 @@ class QuoteChecker(object):
     @classmethod
     def parse_options(cls, options):
         if hasattr(options, 'quotes') and options.quotes is not None:
+            # https://docs.python.org/2/library/warnings.html#warnings.warn
+            warnings.warn('flake8-quotes has deprecated `quotes` in favor of `inline-quotes`. '
+                          'Please update your configugration')
             cls.inline_quotes = cls.INLINE_QUOTES[options.quotes]
         else:
             cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
