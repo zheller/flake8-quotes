@@ -37,6 +37,8 @@ class QuoteChecker(object):
         }
     }
 
+    MULTILINE_QUOTES_STRINGS = ('\'\'\'', '"""')
+
     def __init__(self, tree, filename='(none)', builtins=None):
         self.filename = filename
 
@@ -50,21 +52,17 @@ class QuoteChecker(object):
 
     @classmethod
     def parse_options(cls, options):
-        multiline_ignored = True
-
         if hasattr(options, 'multiline_quotes'):
             multiline_quotes = options.multiline_quotes
-
-            if multiline_quotes is None:
-                multiline_quotes = options.inline_quotes
-            else:
-                multiline_ignored = False
         else:
             multiline_quotes = options.inline_quotes
 
         cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
-        cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes]
-        cls.multiline_ignored = multiline_ignored
+
+        if multiline_quotes is not None:
+            cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes]
+        else:
+            cls.multiline_quotes = None
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -96,13 +94,15 @@ class QuoteChecker(object):
                 # ignore non strings
                 continue
 
-            if not token.string.startswith(self.inline_quotes['bad']) and not token.string.startswith(self.multiline_quotes['bad']):
-                # ignore strings that do not start with our quotes (both single and multiline)
+            if token.string[0:3] in self.MULTILINE_QUOTES_STRINGS:
+                if self.multiline_quotes is None or token.string.startswith(self.multiline_quotes['bad']):
+                    continue
+
+            if not token.string.startswith(self.inline_quotes['bad']):
+                # ignore strings that do not start with our quote
                 continue
 
-            if self.multiline_ignored and any([token.string.startswith(value) for value in self.multiline_quotes.values()]):
-                # ignore any type of multiline if multilines are being ignored
-                continue
+
 
             if self.inline_quotes['good'] in token.string:
                 # ignore quotes wrapped in our quotes (e.g. `'` in `"it's"`)
