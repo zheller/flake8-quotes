@@ -38,7 +38,10 @@ class QuoteChecker(object):
 
     @classmethod
     def parse_options(cls, options):
-        cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
+        if not hasattr(options, 'inline_quotes') and hasattr(options, 'quotes'):
+            cls.inline_quotes = cls.INLINE_QUOTES[options.quotes]
+        else:
+            cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
