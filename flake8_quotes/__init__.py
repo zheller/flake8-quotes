@@ -9,7 +9,7 @@ class QuoteChecker(object):
     name = __name__
     version = __version__
 
-    QUOTES = {
+    INLINE_QUOTES = {
         # When user wants only single quotes
         '\'': {
             'good_single': '\'',
