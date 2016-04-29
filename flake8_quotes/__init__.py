@@ -30,8 +30,8 @@ class QuoteChecker(object):
 
     @classmethod
     def add_options(cls, parser):
-        parser.add_option('--quotes', default='\'', action='store', dest='inline_quotes',
-                          help='Quote to expect in all files (default: \') (deprecated)')
+        parser.add_option('--quotes', action='store', dest='inline_quotes',
+                          help='Deprecated alias for `--inline-quotes`')
         parser.add_option('--inline-quotes', default='\'', action='store',
                           help='Quote to expect in all files (default: \')')
         parser.config_options.append('quotes')
