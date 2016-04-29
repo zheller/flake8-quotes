@@ -98,8 +98,6 @@ class QuoteChecker(object):
                 # ignore strings that do not start with our quote
                 continue
 
-
-
             if self.inline_quotes['good'] in token.string:
                 # ignore quotes wrapped in our quotes (e.g. `'` in `"it's"`)
                 continue
