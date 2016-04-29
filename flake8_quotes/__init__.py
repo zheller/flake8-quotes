@@ -91,7 +91,7 @@ class QuoteChecker(object):
                 continue
 
             if token.string[0:3] in self.MULTILINE_QUOTES_STRINGS:
-                if self.multiline_quotes is None or token.string.startswith(self.multiline_quotes['bad']):
+                if self.multiline_quotes is None or not token.string.startswith(self.multiline_quotes['bad']):
                     continue
 
             if not token.string.startswith(self.quotes['bad']):
