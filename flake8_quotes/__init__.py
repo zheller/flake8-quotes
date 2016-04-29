@@ -9,7 +9,7 @@ class QuoteChecker(object):
     name = __name__
     version = __version__
 
-    QUOTES = {
+    INLINE_QUOTES = {
         # When user wants only single quotes
         '\'': {
             'good_single': '\'',
@@ -30,13 +30,18 @@ class QuoteChecker(object):
 
     @classmethod
     def add_options(cls, parser):
-        parser.add_option('--quotes', default='\'', action='store',
+        parser.add_option('--quotes', action='store',
+                          help='Deprecated alias for `--inline-quotes`')
+        parser.add_option('--inline-quotes', default='\'', action='store',
                           help='Quote to expect in all files (default: \')')
-        parser.config_options.append('quotes')
+        parser.config_options.extend(['quotes', 'inline-quotes'])
 
     @classmethod
     def parse_options(cls, options):
-        cls.quotes = cls.QUOTES[options.quotes]
+        if hasattr(options, 'quotes') and options.quotes is not None:
+            cls.inline_quotes = cls.INLINE_QUOTES[options.quotes]
+        else:
+            cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -68,15 +73,15 @@ class QuoteChecker(object):
                 # ignore non strings
                 continue
 
-            if not token.string.startswith(self.quotes['bad_single']):
+            if not token.string.startswith(self.inline_quotes['bad_single']):
                 # ignore strings that do not start with our quotes
                 continue
 
-            if token.string.startswith(self.quotes['bad_multiline']):
+            if token.string.startswith(self.inline_quotes['bad_multiline']):
                 # ignore multiline strings
                 continue
 
-            if self.quotes['good_single'] in token.string:
+            if self.inline_quotes['good_single'] in token.string:
                 # ignore alternate quotes wrapped in our quotes (e.g. `'` in `"it's"`)
                 continue
 

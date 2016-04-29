@@ -12,7 +12,7 @@ class TestChecks(TestCase):
 class DoublesTestChecks(TestCase):
     def setUp(self):
         class DoublesOptions():
-            quotes = '\''
+            inline_quotes = '\''
         QuoteChecker.parse_options(DoublesOptions)
 
     def test_multiline_string(self):
@@ -37,7 +37,7 @@ class DoublesTestChecks(TestCase):
 class SinglesTestChecks(TestCase):
     def setUp(self):
         class SinglesOptions():
-            quotes = '"'
+            inline_quotes = '"'
         QuoteChecker.parse_options(SinglesOptions)
 
     def test_multiline_string(self):
