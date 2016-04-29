@@ -9,7 +9,7 @@ class QuoteChecker(object):
     name = __name__
     version = __version__
 
-    QUOTES = {
+    INLINE_QUOTES = {
         # When user wants only single quotes
         '\'': {
             'good': '\'',
@@ -55,7 +55,7 @@ class QuoteChecker(object):
         else:
             multiline_quotes = options.quotes
 
-        cls.quotes = cls.QUOTES[options.quotes]
+        cls.quotes = cls.INLINE_QUOTES[options.quotes]
         cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes]
 
     def get_file_contents(self):
