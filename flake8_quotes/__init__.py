@@ -44,19 +44,27 @@ class QuoteChecker(object):
     def add_options(cls, parser):
         parser.add_option('--quotes', default='\'', action='store',
                           help='Quote to expect in all files (default: \')')
-        parser.add_option('--multiline-quotes', default='\'', action='store',
-                          help='Multiline quote to expect in all files (default: \')')
+        parser.add_option('--multiline-quotes', default='', action='store',
+                          help='Multiline quote to expect in all files (default: any)')
         parser.config_options.extend(['quotes', 'multiline_quotes'])
 
     @classmethod
     def parse_options(cls, options):
+        multiline_ignored = True
+
         if hasattr(options, 'multiline_quotes'):
             multiline_quotes = options.multiline_quotes
+
+            if len(multiline_quotes) == 0:
+                multiline_quotes = options.quotes
+            else:
+                multiline_ignored = False
         else:
             multiline_quotes = options.quotes
 
         cls.quotes = cls.INLINE_QUOTES[options.quotes]
         cls.multiline_quotes = cls.MULTILINE_QUOTES[multiline_quotes]
+        cls.multiline_ignored = multiline_ignored
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -90,6 +98,10 @@ class QuoteChecker(object):
 
             if not token.string.startswith(self.quotes['bad']) and not token.string.startswith(self.multiline_quotes['bad']):
                 # ignore strings that do not start with our quotes (both single and multiline)
+                continue
+
+            if self.multiline_ignored and any([token.string.startswith(value) for value in self.multiline_quotes.values()]):
+                # ignore any type of multiline if multilines are being ignored
                 continue
 
             if self.quotes['good'] in token.string:
