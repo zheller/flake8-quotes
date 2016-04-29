@@ -102,10 +102,6 @@ class QuoteChecker(object):
                 # ignore quotes wrapped in our quotes (e.g. `'` in `"it's"`)
                 continue
 
-            if self.multiline_quotes['good'] in token.string:
-                # ignore multiline quotes wrapped in our quotes
-                continue
-
             start_row, start_col = token.start
             yield {
                 'message': 'Q000 Remove bad quotes.',
