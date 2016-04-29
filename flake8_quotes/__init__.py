@@ -45,7 +45,7 @@ class QuoteChecker(object):
         parser.add_option('--quotes', default='\'', action='store',
                           help='Quote to expect in all files (default: \')')
         parser.add_option('--multiline-quotes', action='store',
-                          help='Multiline quote to expect in all files (default: any)')
+                          help='Multiline quote to expect in all files (disabled by default)')
         parser.config_options.extend(['quotes', 'multiline_quotes'])
 
     @classmethod
