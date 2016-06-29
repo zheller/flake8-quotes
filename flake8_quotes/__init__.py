@@ -1,7 +1,7 @@
 import tokenize
 import warnings
 
-import pep8
+import pycodestyle
 
 from flake8_quotes.__about__ import __version__
 
@@ -49,9 +49,9 @@ class QuoteChecker(object):
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
-            return pep8.stdin_get_value().splitlines(True)
+            return pycodestyle.stdin_get_value().splitlines(True)
         else:
-            return pep8.readlines(self.filename)
+            return pycodestyle.readlines(self.filename)
 
     def run(self):
         file_contents = self.get_file_contents()
