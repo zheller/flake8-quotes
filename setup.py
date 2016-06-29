@@ -28,7 +28,7 @@ setup(
     author_email='zheller@gmail.com',
     version=about['__version__'],
     install_requires=[
-        'pep8',
+        'pycodestyle',
     ],
     url='http://github.com/zheller/flake8-quotes/',
     long_description=LONG_DESCRIPTION,
