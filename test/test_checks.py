@@ -26,7 +26,9 @@ class DoublesTestChecks(TestCase):
     def test_doubles(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles.py'))
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes.'}
+            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes.'},
+            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes.'},
+            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes.'},
         ])
 
     def test_noqa_doubles(self):
@@ -51,7 +53,9 @@ class SinglesTestChecks(TestCase):
     def test_singles(self):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles.py'))
         self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes.'}
+            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes.'},
+            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes.'},
+            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes.'},
         ])
 
     def test_noqa_singles(self):
