@@ -1,3 +1,4 @@
+import optparse
 import tokenize
 import warnings
 
@@ -29,13 +30,35 @@ class QuoteChecker(object):
     def __init__(self, tree, filename='(none)', builtins=None):
         self.filename = filename
 
+    @staticmethod
+    def _register_opt(parser, *args, **kwargs):
+        """
+        Handler to register an option for both Flake8 3.x and 2.x.
+
+        This is based on:
+        https://github.com/PyCQA/flake8/blob/3.0.0b2/docs/source/plugin-development/cross-compatibility.rst#option-handling-on-flake8-2-and-3
+
+        It only supports `parse_from_config` from the original function and it
+        uses the `Option` object returned to get the string.
+        """
+        try:
+            # Flake8 3.x registration
+            parser.add_option(*args, **kwargs)
+        except (optparse.OptionError, TypeError):
+            # Flake8 2.x registration
+            parse_from_config = kwargs.pop('parse_from_config', False)
+            option = parser.add_option(*args, **kwargs)
+            if parse_from_config:
+                parser.config_options.append(option.get_opt_string().lstrip('-'))
+
     @classmethod
     def add_options(cls, parser):
-        parser.add_option('--quotes', action='store',
+        cls._register_opt(parser, '--quotes', action='store',
+                          parse_from_config=True,
                           help='Deprecated alias for `--inline-quotes`')
-        parser.add_option('--inline-quotes', default='\'', action='store',
+        cls._register_opt(parser, '--inline-quotes', default='\'',
+                          action='store', parse_from_config=True,
                           help='Quote to expect in all files (default: \')')
-        parser.config_options.extend(['quotes', 'inline-quotes'])
 
     @classmethod
     def parse_options(cls, options):
