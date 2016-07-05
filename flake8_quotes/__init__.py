@@ -2,7 +2,7 @@ import optparse
 import tokenize
 import warnings
 
-import pep8
+from flake8.engine import pep8
 
 from flake8_quotes.__about__ import __version__
 
