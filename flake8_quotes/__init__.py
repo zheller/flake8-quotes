@@ -77,22 +77,25 @@ class QuoteChecker(object):
                 # ignore non strings
                 continue
 
-            # Remove any prefixes in strings like `u"foo"`. Use the quote
-            # character at the end of the string to know where the prefixes end
-            quote_char = token.string[-1]  # Does only contain one character!
-            quote_start = token.string.index(quote_char)
-            text = token.string[quote_start:]
-            # `"foo"`, `b"foo"`, `br"foo"` all result in `"foo"`
+            # Remove any prefixes in strings like `u` from `u"foo"`
+            # DEV: `last_quote_char` is 1 character, even for multiline strings
+            #   `"foo"`   -> `"foo"`
+            #   `b"foo"`  -> `"foo"`
+            #   `br"foo"` -> `"foo"`
+            #   `b"""foo"""` -> `"""foo"""`
+            last_quote_char = token.string[-1]
+            first_quote_index = token.string.index(last_quote_char)
+            unprefixed_string = token.string[first_quote_index:]
 
-            if not text.startswith(self.inline_quotes['bad_single']):
+            if not unprefixed_string.startswith(self.inline_quotes['bad_single']):
                 # ignore strings that do not start with our quotes
                 continue
 
-            if text.startswith(self.inline_quotes['bad_multiline']):
+            if unprefixed_string.startswith(self.inline_quotes['bad_multiline']):
                 # ignore multiline strings
                 continue
 
-            if self.inline_quotes['good_single'] in text:
+            if self.inline_quotes['good_single'] in unprefixed_string:
                 # ignore alternate quotes wrapped in our quotes (e.g. `'` in `"it's"`)
                 continue
 
