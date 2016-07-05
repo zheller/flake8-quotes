@@ -11,21 +11,8 @@ class QuoteChecker(object):
     name = __name__
     version = __version__
 
-    INLINE_QUOTES = {
-        # When user wants only single quotes
-        '\'': {
-            'good_single': '\'',
-            'good_multiline': '\'\'\'',
-            'bad_single': '"',
-            'bad_multiline': '"""',
-        },
-        '"': {
-            'good_single': '"',
-            'good_multiline': '"""',
-            'bad_single': '\'',
-            'bad_multiline': '\'\'\'',
-        },
-    }
+    INLINE_QUOTES = ['"', "'"]
+    MULTILINE_QUOTES = ['"""', "'''"]
 
     def __init__(self, tree, filename='(none)', builtins=None):
         self.filename = filename
@@ -54,11 +41,15 @@ class QuoteChecker(object):
     @classmethod
     def add_options(cls, parser):
         cls._register_opt(parser, '--quotes', action='store',
-                          parse_from_config=True,
+                          parse_from_config=True, choices=cls.INLINE_QUOTES,
                           help='Deprecated alias for `--inline-quotes`')
         cls._register_opt(parser, '--inline-quotes', default='\'',
                           action='store', parse_from_config=True,
+                          choices=cls.INLINE_QUOTES,
                           help='Quote to expect in all files (default: \')')
+        cls._register_opt(parser, '--multiline-quotes', action='store',
+                          choices=cls.INLINE_QUOTES,
+                          help='Quote to expect in all files (default same as inline quote)')
 
     @classmethod
     def parse_options(cls, options):
@@ -66,9 +57,13 @@ class QuoteChecker(object):
             # https://docs.python.org/2/library/warnings.html#warnings.warn
             warnings.warn('flake8-quotes has deprecated `quotes` in favor of `inline-quotes`. '
                           'Please update your configugration')
-            cls.inline_quotes = cls.INLINE_QUOTES[options.quotes]
-        else:
-            cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
+            options.inline_quotes = options.quotes
+
+        cls.inline_quotes = options.inline_quotes
+        if options.multiline_quotes is None:
+            options.multiline_quotes = options.inline_quotes
+        # assume that multiline quotes are all 3x singleline quotes
+        cls.multiline_quotes = options.multiline_quotes * 3
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -92,6 +87,19 @@ class QuoteChecker(object):
                 for token in tokens
                 if token.type == tokenize.COMMENT and token.string.endswith('noqa')]
 
+    def complain(self, unprefixed_string, is_multiline):
+        quote_configured = self.multiline_quotes if is_multiline else self.inline_quotes
+        quote_used = unprefixed_string[:3 if is_multiline else 1]
+        # If the quote used is the wanted one, do not complain
+        if quote_used == quote_configured:
+            return False
+        # If the wanted quote is in the unprefixed string, do not complain
+        elif quote_configured in unprefixed_string:
+            return False
+        # Otherwise it could use the other quote
+        else:
+            return True
+
     def get_quotes_errors(self, file_contents):
         tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
         for token in tokens:
@@ -110,21 +118,21 @@ class QuoteChecker(object):
             first_quote_index = token.string.index(last_quote_char)
             unprefixed_string = token.string[first_quote_index:]
 
-            if not unprefixed_string.startswith(self.inline_quotes['bad_single']):
-                # ignore strings that do not start with our quotes
-                continue
+            err = False
+            if unprefixed_string[:3] in self.MULTILINE_QUOTES:
+                if self.complain(unprefixed_string, True):
+                    err = 'Q001 Wrong multiline quote style used'
+            else:
+                if self.complain(unprefixed_string, False):
+                    err = 'Q000 Remove bad quotes.'
 
-            if unprefixed_string.startswith(self.inline_quotes['bad_multiline']):
-                # ignore multiline strings
-                continue
-
-            if self.inline_quotes['good_single'] in unprefixed_string:
-                # ignore alternate quotes wrapped in our quotes (e.g. `'` in `"it's"`)
+            # Nothing to complain
+            if err is False:
                 continue
 
             start_row, start_col = token.start
             yield {
-                'message': 'Q000 Remove bad quotes.',
+                'message': err,
                 'line': start_row,
                 'col': start_col,
             }
