@@ -2,12 +2,17 @@ import optparse
 import tokenize
 import warnings
 
-from flake8.engine import pep8
+import flake8
 
 from flake8_quotes.__about__ import __version__
 
+FLAKE8_VERSION2 = int(flake8.__version__.split('.')[0]) == 2
+if FLAKE8_VERSION2:
+    # Use the pep8/pycodestyle package used by Flake8
+    from flake8.engine import pep8
 
-class QuoteChecker(object):
+
+class QuoteCheckerBase(object):
     name = __name__
     version = __version__
 
@@ -27,8 +32,8 @@ class QuoteChecker(object):
         },
     }
 
-    def __init__(self, tree, filename='(none)', builtins=None):
-        self.filename = filename
+    def __init__(self, lines):
+        self.lines = lines
 
     @staticmethod
     def _register_opt(parser, *args, **kwargs):
@@ -71,10 +76,7 @@ class QuoteChecker(object):
             cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
 
     def get_file_contents(self):
-        if self.filename in ('stdin', '-', None):
-            return pep8.stdin_get_value().splitlines(True)
-        else:
-            return pep8.readlines(self.filename)
+        return self.lines
 
     def run(self):
         file_contents = self.get_file_contents()
@@ -128,6 +130,27 @@ class QuoteChecker(object):
                 'line': start_row,
                 'col': start_col,
             }
+
+
+if not FLAKE8_VERSION2:
+    class QuoteChecker(QuoteCheckerBase):
+
+        def __init__(self, tree, lines):
+            # This is using the `tree` argument as Flake8 3.0.0b2 won't run it
+            # if it doesn't contain certain parameters.
+            # See also: https://gitlab.com/pycqa/flake8/issues/159
+            super(QuoteChecker, self).__init__(lines)
+
+else:
+    class QuoteChecker(QuoteCheckerBase):
+
+        def __init__(self, tree, filename):
+            if filename in ('stdin', '-', None):
+                lines = pep8.stdin_get_value().splitlines(True)
+            else:
+                lines = pep8.readlines(filename)
+            super(QuoteChecker, self).__init__(lines)
+
 
 
 class Token:
