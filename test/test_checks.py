@@ -13,11 +13,14 @@ class DoublesTestChecks(TestCase):
     def setUp(self):
         class DoublesOptions():
             inline_quotes = '\''
+            multiline_quotes = None
         QuoteChecker.parse_options(DoublesOptions)
 
     def test_multiline_string(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_multiline_string.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
+            {'col': 0, 'line': 1, 'message': 'Q001 Wrong multiline quote style used'},
+        ])
 
     def test_wrapped(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_wrapped.py'))
@@ -40,11 +43,14 @@ class SinglesTestChecks(TestCase):
     def setUp(self):
         class SinglesOptions():
             inline_quotes = '"'
+            multiline_quotes = None
         QuoteChecker.parse_options(SinglesOptions)
 
     def test_multiline_string(self):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_multiline_string.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
+            {'col': 0, 'line': 1, 'message': 'Q001 Wrong multiline quote style used'},
+        ])
 
     def test_wrapped(self):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_wrapped.py'))
