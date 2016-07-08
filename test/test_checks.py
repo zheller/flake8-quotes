@@ -1,12 +1,38 @@
+import subprocess
+
 from flake8_quotes import QuoteChecker
 import os
-from unittest import TestCase
+from unittest import expectedFailure, TestCase
 
 
 class TestChecks(TestCase):
     def test_get_noqa_lines(self):
         checker = QuoteChecker(None, filename=get_absolute_path('data/no_qa.py'))
         self.assertEqual(checker.get_noqa_lines(checker.get_file_contents()), [2])
+
+
+class TestFlake8Stdin(TestCase):
+
+    @expectedFailure
+    def test_stdin(self):
+        """Test using stdin."""
+        filename = get_absolute_path('data/doubles.py')
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf8'
+        with open(filename, 'rb') as f:
+            # For some reason using "--select=Q" did suppress all outputs, so
+            # the result might contain non flake_quotes related errors
+            p = subprocess.Popen(['flake8', '-'], stdin=f, env=env,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+
+        out = out.decode('utf8').splitlines()
+        self.assertFalse(err)
+        self.assertEqual(out, [
+            'stdin:1:25: Q000 Remove bad quotes.',
+            'stdin:2:25: Q000 Remove bad quotes.',
+            'stdin:3:25: Q000 Remove bad quotes.',
+        ])
 
 
 class DoublesTestChecks(TestCase):
