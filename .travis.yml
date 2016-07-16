@@ -13,7 +13,13 @@ install:
   - pip install -r requirements-dev.txt
 
   # If we are testing Flake8 3.x, then install it
-  - if test "$FLAKE8_VERSION" = "3"; then pip install flake8==3.0.0b2; fi
+  # Force jobs to 1 as a workaround to avoid the PicklingError
+  # see https://gitlab.com/pycqa/flake8/issues/164
+  - if test "$FLAKE8_VERSION" = "3"; then
+      pip install flake8==3.0.0b2;
+      echo "[flake8]" > tox.ini;
+      echo "jobs=1" >> tox.ini;
+    fi
 
   # Install `flake8-quotes`
   - python setup.py develop
