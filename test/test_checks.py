@@ -1,12 +1,45 @@
 from flake8_quotes import QuoteChecker
 import os
-from unittest import TestCase
+import subprocess
+from unittest import expectedFailure, TestCase
+
+
+FLAKE8_VERSION = os.environ.get('FLAKE8_VERSION', '2')
+
+
+def expectedFailureIf(condition):
+    """Only expect failure if condition applies."""
+    if condition:
+        return expectedFailure
+    else:
+        return lambda func: func
 
 
 class TestChecks(TestCase):
     def test_get_noqa_lines(self):
         checker = QuoteChecker(None, filename=get_absolute_path('data/no_qa.py'))
         self.assertEqual(checker.get_noqa_lines(checker.get_file_contents()), [2])
+
+
+class TestFlake8Stdin(TestCase):
+    @expectedFailureIf(FLAKE8_VERSION == '3')
+    def test_stdin(self):
+        """Test using stdin."""
+        filepath = get_absolute_path('data/doubles.py')
+        with open(filepath, 'rb') as f:
+            # For some reason using "--select=Q" did suppress all outputs, so
+            # the result might contain non flake_quotes related errors
+            p = subprocess.Popen(['flake8', '-'], stdin=f,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+
+        stdout_lines = stdout.splitlines()
+        self.assertEqual(stderr, b'')
+        self.assertEqual(stdout_lines, [
+            b'stdin:1:25: Q000 Remove bad quotes.',
+            b'stdin:2:25: Q000 Remove bad quotes.',
+            b'stdin:3:25: Q000 Remove bad quotes.',
+        ])
 
 
 class DoublesTestChecks(TestCase):
