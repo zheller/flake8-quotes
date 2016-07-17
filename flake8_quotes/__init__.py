@@ -65,7 +65,7 @@ class QuoteChecker(object):
         if hasattr(options, 'quotes') and options.quotes is not None:
             # https://docs.python.org/2/library/warnings.html#warnings.warn
             warnings.warn('flake8-quotes has deprecated `quotes` in favor of `inline-quotes`. '
-                          'Please update your configugration')
+                          'Please update your configuration')
             cls.inline_quotes = cls.INLINE_QUOTES[options.quotes]
         else:
             cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
