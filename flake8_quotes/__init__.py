@@ -55,11 +55,11 @@ class QuoteChecker(object):
     def add_options(cls, parser):
         cls._register_opt(parser, '--quotes', action='store',
                           parse_from_config=True, type='choice',
-                          choices=list(cls.INLINE_QUOTES),
+                          choices=sorted(cls.INLINE_QUOTES.keys()),
                           help='Deprecated alias for `--inline-quotes`')
         cls._register_opt(parser, '--inline-quotes', default='\'',
-                          action='store', parse_from_config=True,
-                          type='choice', choices=list(cls.INLINE_QUOTES),
+                          action='store', parse_from_config=True, type='choice',
+                          choices=sorted(cls.INLINE_QUOTES.keys()),
                           help='Quote to expect in all files (default: \')')
 
     @classmethod
