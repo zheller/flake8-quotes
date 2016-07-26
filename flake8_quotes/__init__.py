@@ -2,7 +2,16 @@ import optparse
 import tokenize
 import warnings
 
-from flake8.engine import pep8
+from flake8_polyfill import stdin, version
+
+# Choose correct pep8/pycodestyle package depending on Flake8
+if version.version_info < (2, 6):
+    import pep8
+else:
+    # Flake8 2.x monkey patchs it automatically
+    if version.version_info >= (3, 0):
+        stdin.monkey_patch('pycodestyle')
+    import pycodestyle as pep8
 
 from flake8_quotes.__about__ import __version__
 

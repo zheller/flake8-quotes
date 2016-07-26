@@ -1,10 +1,8 @@
+from flake8_polyfill.version import version_info
 from flake8_quotes import QuoteChecker
 import os
 import subprocess
 from unittest import expectedFailure, TestCase
-
-
-FLAKE8_VERSION = os.environ.get('FLAKE8_VERSION', '2')
 
 
 def expectedFailureIf(condition):
@@ -21,24 +19,53 @@ class TestChecks(TestCase):
         self.assertEqual(checker.get_noqa_lines(checker.get_file_contents()), [2])
 
 
-class TestFlake8Stdin(TestCase):
-    @expectedFailureIf(FLAKE8_VERSION == '3')
+class TestFlake8(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if version_info < (3, 0):
+            cls.expected_error_suffix = b'25: Q000 Remove bad quotes.'
+            # For some reason using "--select=Q" did suppress all outputs, so
+            # the result might contain non flake_quotes related errors
+            parameters = []
+        else:
+            cls.expected_error_suffix = b'24: Q000 Remove bad quotes.'
+            # Conversely Flake8 3.x currently has a bug that it doesn't report
+            # any error unless selected specifically
+            # See also: https://gitlab.com/pycqa/flake8/issues/183
+            parameters = ['--select=Q']
+        cls.command = ['flake8'] + parameters
+
+    def test_file(self):
+        """Test using stdin."""
+        filepath = get_absolute_path('data/doubles.py')
+        p = subprocess.Popen(self.command + [filepath],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+
+        stdout_lines = stdout.splitlines()
+        self.assertEqual(stderr, b'')
+        # Encode the path as ASCII and hope for the best
+        encoded_path = filepath.encode('ascii')
+        self.assertEqual(stdout_lines, [
+            encoded_path + b':1:' + self.expected_error_suffix,
+            encoded_path + b':2:' + self.expected_error_suffix,
+            encoded_path + b':3:' + self.expected_error_suffix,
+        ])
+
     def test_stdin(self):
         """Test using stdin."""
         filepath = get_absolute_path('data/doubles.py')
         with open(filepath, 'rb') as f:
-            # For some reason using "--select=Q" did suppress all outputs, so
-            # the result might contain non flake_quotes related errors
-            p = subprocess.Popen(['flake8', '-'], stdin=f,
+            p = subprocess.Popen(self.command + ['-'], stdin=f,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
 
         stdout_lines = stdout.splitlines()
         self.assertEqual(stderr, b'')
         self.assertEqual(stdout_lines, [
-            b'stdin:1:25: Q000 Remove bad quotes.',
-            b'stdin:2:25: Q000 Remove bad quotes.',
-            b'stdin:3:25: Q000 Remove bad quotes.',
+            b'stdin:1:' + self.expected_error_suffix,
+            b'stdin:2:' + self.expected_error_suffix,
+            b'stdin:3:' + self.expected_error_suffix,
         ])
 
 
