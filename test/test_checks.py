@@ -27,9 +27,7 @@ class TestFlake8Stdin(TestCase):
         """Test using stdin."""
         filepath = get_absolute_path('data/doubles.py')
         with open(filepath, 'rb') as f:
-            # For some reason using "--select=Q" did suppress all outputs, so
-            # the result might contain non flake_quotes related errors
-            p = subprocess.Popen(['flake8', '-'], stdin=f,
+            p = subprocess.Popen(['flake8', '--select=Q', '-'], stdin=f,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
 
