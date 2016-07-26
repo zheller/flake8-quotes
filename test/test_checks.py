@@ -1,18 +1,7 @@
 from flake8_quotes import QuoteChecker
 import os
 import subprocess
-from unittest import expectedFailure, TestCase
-
-
-FLAKE8_VERSION = os.environ.get('FLAKE8_VERSION', '2')
-
-
-def expectedFailureIf(condition):
-    """Only expect failure if condition applies."""
-    if condition:
-        return expectedFailure
-    else:
-        return lambda func: func
+from unittest import TestCase
 
 
 class TestChecks(TestCase):
@@ -22,7 +11,6 @@ class TestChecks(TestCase):
 
 
 class TestFlake8Stdin(TestCase):
-    @expectedFailureIf(FLAKE8_VERSION == '3')
     def test_stdin(self):
         """Test using stdin."""
         filepath = get_absolute_path('data/doubles.py')
@@ -33,11 +21,10 @@ class TestFlake8Stdin(TestCase):
 
         stdout_lines = stdout.splitlines()
         self.assertEqual(stderr, b'')
-        self.assertEqual(stdout_lines, [
-            b'stdin:1:25: Q000 Remove bad quotes.',
-            b'stdin:2:25: Q000 Remove bad quotes.',
-            b'stdin:3:25: Q000 Remove bad quotes.',
-        ])
+        self.assertEqual(len(stdout_lines), 3)
+        self.assertRegexpMatches(stdout_lines[0], b'stdin:1:(24|25): Q000 Remove bad quotes.')
+        self.assertRegexpMatches(stdout_lines[1], b'stdin:2:(24|25): Q000 Remove bad quotes.')
+        self.assertRegexpMatches(stdout_lines[2], b'stdin:3:(24|25): Q000 Remove bad quotes.')
 
 
 class DoublesTestChecks(TestCase):
