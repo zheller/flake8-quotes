@@ -54,6 +54,24 @@ class DoublesTestChecks(TestCase):
         self.assertEqual(list(checker.run()), [])
 
 
+class DoublesAliasTestChecks(TestCase):
+    def setUp(self):
+        class DoublesAliasOptions():
+            inline_quotes = 'single'
+        QuoteChecker.parse_options(DoublesAliasOptions)
+
+    def test_doubles(self):
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_wrapped.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
+
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
+            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes.'},
+            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes.'},
+            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes.'},
+        ])
+
+
 class SinglesTestChecks(TestCase):
     def setUp(self):
         class SinglesOptions():
@@ -79,6 +97,24 @@ class SinglesTestChecks(TestCase):
     def test_noqa_singles(self):
         checker = QuoteChecker(None, get_absolute_path('data/singles_noqa.py'))
         self.assertEqual(list(checker.run()), [])
+
+
+class SinglesAliasTestChecks(TestCase):
+    def setUp(self):
+        class SinglesAliasOptions():
+            inline_quotes = 'double'
+        QuoteChecker.parse_options(SinglesAliasOptions)
+
+    def test_singles(self):
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_wrapped.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
+            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes.'},
+            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes.'},
+            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes.'},
+        ])
 
 
 def get_absolute_path(filepath):

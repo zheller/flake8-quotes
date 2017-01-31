@@ -29,9 +29,13 @@ By default, we expect single quotes (') and look for unwanted double quotes (").
 .. code:: shell
 
     flake8 --inline-quotes '"'
+    # We also support "double" and "single"
+    # flake8 --inline-quotes 'double'
 
 or configuration option in `tox.ini`/`setup.cfg`.
 
 .. code:: ini
 
     inline-quotes = "
+    # We also support "double" and "single"
+    # inline-quotes = double

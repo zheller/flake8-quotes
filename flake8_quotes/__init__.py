@@ -36,6 +36,10 @@ class QuoteChecker(object):
             'bad_multiline': '\'\'\'',
         },
     }
+    # Provide aliases for Windows CLI support
+    #   https://github.com/zheller/flake8-quotes/issues/49
+    INLINE_QUOTES['single'] = INLINE_QUOTES['\'']
+    INLINE_QUOTES['double'] = INLINE_QUOTES['"']
 
     def __init__(self, tree, filename='(none)', builtins=None):
         self.filename = filename
