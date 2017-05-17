@@ -126,12 +126,12 @@ class QuoteChecker(object):
             first_quote_index = token.string.index(last_quote_char)
             unprefixed_string = token.string[first_quote_index:]
 
-            if not unprefixed_string.startswith(self.inline_quotes['bad_single']):
-                # ignore strings that do not start with our quotes
+            if unprefixed_string.startswith(self.inline_quotes['good_multiline']):
+                # ignore multiline strings
                 continue
 
-            if unprefixed_string.startswith(self.inline_quotes['bad_multiline']):
-                # ignore multiline strings
+            if unprefixed_string.startswith(self.inline_quotes['good_single']):
+                # ignore strings that do not start with our quotes
                 continue
 
             if self.inline_quotes['good_single'] in unprefixed_string:

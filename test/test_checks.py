@@ -35,7 +35,9 @@ class DoublesTestChecks(TestCase):
 
     def test_multiline_string(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_multiline_string.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
+            {'col': 0, 'line': 1, 'message': 'Q000 Remove bad quotes.'},
+        ])
 
     def test_wrapped(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_wrapped.py'))
@@ -80,7 +82,9 @@ class SinglesTestChecks(TestCase):
 
     def test_multiline_string(self):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_multiline_string.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
+            {'col': 0, 'line': 1, 'message': 'Q000 Remove bad quotes.'},
+        ])
 
     def test_wrapped(self):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_wrapped.py'))
