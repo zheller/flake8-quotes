@@ -41,6 +41,19 @@ class QuoteChecker(object):
     INLINE_QUOTES['single'] = INLINE_QUOTES['\'']
     INLINE_QUOTES['double'] = INLINE_QUOTES['"']
 
+    MULTILINE_QUOTES = {
+        '\'': {
+            'good_multiline': '\'\'\'',
+            'bad_multiline': '"""',
+        },
+        '"': {
+            'good_multiline': '"""',
+            'bad_multiline': '\'\'\'',
+        },
+    }
+    MULTILINE_QUOTES['single'] = MULTILINE_QUOTES['\'']
+    MULTILINE_QUOTES['double'] = MULTILINE_QUOTES['"']
+
     def __init__(self, tree, filename='(none)', builtins=None):
         self.filename = filename
 
@@ -75,6 +88,10 @@ class QuoteChecker(object):
                           action='store', parse_from_config=True, type='choice',
                           choices=sorted(cls.INLINE_QUOTES.keys()),
                           help='Quote to expect in all files (default: \')')
+        cls._register_opt(parser, '--multiline-quotes', default=None,
+                          action='store', parse_from_config=True, type='choice',
+                          choices=sorted(cls.MULTILINE_QUOTES.keys()),
+                          help='Quote to expect in all files (default: \')')
 
     @classmethod
     def parse_options(cls, options):
@@ -82,9 +99,12 @@ class QuoteChecker(object):
             # https://docs.python.org/2/library/warnings.html#warnings.warn
             warnings.warn('flake8-quotes has deprecated `quotes` in favor of `inline-quotes`. '
                           'Please update your configuration')
-            cls.inline_quotes = cls.INLINE_QUOTES[options.quotes]
+            cls.inline_quotes = cls.INLINE_QUOTES[options.quotes].copy()
         else:
-            cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes]
+            cls.inline_quotes = cls.INLINE_QUOTES[options.inline_quotes].copy()
+
+        if hasattr(options, 'multiline_quotes') and options.multiline_quotes is not None:
+            cls.inline_quotes.update(cls.MULTILINE_QUOTES[options.multiline_quotes])
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -130,13 +150,14 @@ class QuoteChecker(object):
                 # ignore multiline strings
                 continue
 
-            if unprefixed_string.startswith(self.inline_quotes['good_single']):
-                # ignore strings that do not start with our quotes
-                continue
+            if not unprefixed_string.startswith(self.inline_quotes['bad_multiline']):
+                if unprefixed_string.startswith(self.inline_quotes['good_single']):
+                    # ignore strings that do not start with our quotes
+                    continue
 
-            if self.inline_quotes['good_single'] in unprefixed_string:
-                # ignore alternate quotes wrapped in our quotes (e.g. `'` in `"it's"`)
-                continue
+                if self.inline_quotes['good_single'] in unprefixed_string:
+                    # ignore alternate quotes wrapped in our quotes (e.g. `'` in `"it's"`)
+                    continue
 
             start_row, start_col = token.start
             yield {
