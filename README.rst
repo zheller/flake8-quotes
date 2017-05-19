@@ -28,16 +28,25 @@ By default, we expect single quotes (') and look for unwanted double quotes (").
 
 .. code:: shell
 
-    flake8 --inline-quotes '"' --multiline-quotes "'"
+    flake8 --inline-quotes '"'
     # We also support "double" and "single"
-    # flake8 --inline-quotes 'double' --multiline-quotes 'single'
+    # flake8 --inline-quotes 'double'
+    #
+    # We also support configuration for multiline quotes
+    # flake8 --inline-quotes '"' --multiline-quotes "'"
+    # We also support "'''"
+    # flake8 --inline-quotes '"' --multiline-quotes "'''"
+
 
 or configuration option in `tox.ini`/`setup.cfg`.
 
 .. code:: ini
 
     inline-quotes = "
-    multiline-quotes = '
     # We also support "double" and "single"
     # inline-quotes = double
-    # multiline-quotes = single
+    #
+    # We also support configuration for multiline quotes
+    # multiline-quotes = '
+    # We also support "'''"
+    # multiline-quotes = '''
