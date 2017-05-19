@@ -25,16 +25,12 @@ class QuoteChecker(object):
         # When user wants only single quotes
         '\'': {
             'good_single': '\'',
-            'good_multiline': '\'\'\'',
             'bad_single': '"',
-            'bad_multiline': '"""',
         },
         # When user wants only double quotes
         '"': {
             'good_single': '"',
-            'good_multiline': '"""',
             'bad_single': '\'',
-            'bad_multiline': '\'\'\'',
         },
     }
     # Provide aliases for Windows CLI support
@@ -95,25 +91,32 @@ class QuoteChecker(object):
         cls._register_opt(parser, '--multiline-quotes', default=None, action='store',
                           parse_from_config=True, type='choice',
                           choices=sorted(cls.MULTILINE_QUOTES.keys()),
-                          help='Quote to expect in all files (default: \')')
+                          help='Quote to expect in all files (default: """)')
 
     @classmethod
     def parse_options(cls, options):
+        # Define our default config
+        # cls.config = {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
+        cls.config = {}
+        cls.config.update(cls.INLINE_QUOTES['\''])
+        cls.config.update(cls.MULTILINE_QUOTES['"""'])
+
         # If `options.quotes` was specified, then use it
         if hasattr(options, 'quotes') and options.quotes is not None:
             # https://docs.python.org/2/library/warnings.html#warnings.warn
             warnings.warn('flake8-quotes has deprecated `quotes` in favor of `inline-quotes`. '
                           'Please update your configuration')
-            cls.config = cls.INLINE_QUOTES[options.quotes].copy()
+            cls.config.update(cls.INLINE_QUOTES[options.quotes])
         # Otherwise, use the supported `inline_quotes`
         else:
-            # cls.config = {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
-            cls.config = cls.INLINE_QUOTES[options.inline_quotes].copy()
+            # cls.config = {good_single: ', good_multiline: """, bad_single: ", bad_multiline: '''}
+            #   -> {good_single: ", good_multiline: """, bad_single: ', bad_multiline: '''}
+            cls.config.update(cls.INLINE_QUOTES[options.inline_quotes])
 
         # If multiline quotes was specified, overload our config with those options
         if hasattr(options, 'multiline_quotes') and options.multiline_quotes is not None:
-            # cls.config = {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
-            #   -> {good_single: ', good_multiline: """, bad_single: ", bad_multiline: '''}
+            # cls.config = {good_single: ', good_multiline: """, bad_single: ", bad_multiline: '''}
+            #   -> {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
             cls.config.update(cls.MULTILINE_QUOTES[options.multiline_quotes])
 
     def get_file_contents(self):

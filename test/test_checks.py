@@ -31,6 +31,7 @@ class DoublesTestChecks(TestCase):
     def setUp(self):
         class DoublesOptions():
             inline_quotes = '\''
+            multiline_quotes = '\''
         QuoteChecker.parse_options(DoublesOptions)
 
     def test_multiline_string(self):
@@ -60,6 +61,7 @@ class DoublesAliasTestChecks(TestCase):
     def setUp(self):
         class DoublesAliasOptions():
             inline_quotes = 'single'
+            multiline_quotes = 'single'
         QuoteChecker.parse_options(DoublesAliasOptions)
 
     def test_doubles(self):
@@ -78,6 +80,7 @@ class SinglesTestChecks(TestCase):
     def setUp(self):
         class SinglesOptions():
             inline_quotes = '"'
+            multiline_quotes = '"'
         QuoteChecker.parse_options(SinglesOptions)
 
     def test_multiline_string(self):
@@ -107,6 +110,7 @@ class SinglesAliasTestChecks(TestCase):
     def setUp(self):
         class SinglesAliasOptions():
             inline_quotes = 'double'
+            multiline_quotes = 'double'
         QuoteChecker.parse_options(SinglesAliasOptions)
 
     def test_singles(self):
