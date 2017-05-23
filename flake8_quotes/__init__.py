@@ -158,20 +158,25 @@ class QuoteChecker(object):
             last_quote_char = token.string[-1]
             first_quote_index = token.string.index(last_quote_char)
             unprefixed_string = token.string[first_quote_index:]
+            is_multiline_string = '\n' in unprefixed_string
+            start_row, start_col = token.start
 
-            # If our string has a valid multiline start, then ignore it
-            #   (""")foo""" -> good (continue)
-            #   (''')foo' -> possibly bad
-            #   (")foo" -> possibly bad
-            #   (')foo' -> possibly bad
-            if unprefixed_string.startswith(self.config['good_multiline']):
-                continue
+            if is_multiline_string:
+                # If our string has a valid multiline start, then ignore it
+                #   (""")foo""" -> good (continue)
+                #   (''')foo' -> possibly bad
+                #   (")foo" -> possibly bad
+                #   (')foo' -> possibly bad
+                if unprefixed_string.startswith(self.config['good_multiline']):
+                    continue
 
-            # If our string isn't a known bad multiline
-            #   (''')foo''' -> bad (see reporting at end)
-            #   (')foo' -> possibly bad
-            #   (")foo" -> possibly bad
-            if not unprefixed_string.startswith(self.config['bad_multiline']):
+                # Report the error
+                yield {
+                    'message': 'Q001 Remove bad quotes from multiline string.',
+                    'line': start_row,
+                    'col': start_col,
+                }
+            else:
                 # If our string is a known good string, then ignore it
                 #   (')foo' -> good (continue)
                 #   (")foo" -> possibly bad
@@ -186,14 +191,11 @@ class QuoteChecker(object):
 
                 # Otherwise, report it
                 #   (")foo" -> bad (see reporting at end)
-
-            # Report our error
-            start_row, start_col = token.start
-            yield {
-                'message': 'Q000 Remove bad quotes.',
-                'line': start_row,
-                'col': start_col,
-            }
+                yield {
+                    'message': 'Q000 Remove bad quotes.',
+                    'line': start_row,
+                    'col': start_col,
+                }
 
 
 class Token:
