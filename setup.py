@@ -38,7 +38,7 @@ setup(
     include_package_data=True,
     entry_points={
         'flake8.extension': [
-            'Q000 = flake8_quotes:QuoteChecker',
+            'Q0 = flake8_quotes:QuoteChecker',
         ],
     },
     license='MIT',

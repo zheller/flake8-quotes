@@ -158,39 +158,26 @@ class QuoteChecker(object):
             last_quote_char = token.string[-1]
             first_quote_index = token.string.index(last_quote_char)
             unprefixed_string = token.string[first_quote_index:]
-            is_multiline_string = '\n' in unprefixed_string
+            is_multiquote_string = unprefixed_string[0] * 2 == unprefixed_string[1:3]
             start_row, start_col = token.start
 
-            if is_multiline_string:
+            if is_multiquote_string:
                 # If our string has a valid multiline start, then ignore it
-                #   (""")foo""" -> good (continue)
-                #   (''')foo' -> possibly bad
-                #   (")foo" -> possibly bad
-                #   (')foo' -> possibly bad
                 if unprefixed_string.startswith(self.config['good_multiline']):
                     continue
 
-                # Report the error
                 yield {
                     'message': 'Q001 Remove bad quotes from multiline string.',
                     'line': start_row,
                     'col': start_col,
                 }
             else:
-                # If our string is a known good string, then ignore it
-                #   (')foo' -> good (continue)
-                #   (")foo" -> possibly bad
-                if unprefixed_string.startswith(self.config['good_single']):
-                    continue
-
-                # If our string is wrapping a known good string, then ignore it
-                #   "it(')s" -> good (continue)
-                #   "foo" -> possibly bad
+                # This covers two cases:
+                # - the string starts and end with the good single quote e.g. 'asdf'
+                # - the string contains a good single quote e.g. "asdf's", which is also OK
                 if self.config['good_single'] in unprefixed_string:
                     continue
 
-                # Otherwise, report it
-                #   (")foo" -> bad (see reporting at end)
                 yield {
                     'message': 'Q000 Remove bad quotes.',
                     'line': start_row,
