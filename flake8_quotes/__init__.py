@@ -158,26 +158,39 @@ class QuoteChecker(object):
             last_quote_char = token.string[-1]
             first_quote_index = token.string.index(last_quote_char)
             unprefixed_string = token.string[first_quote_index:]
-            is_multiquote_string = unprefixed_string[0] * 2 == unprefixed_string[1:3]
+
+            # Determine if our string is multiline-based
+            #   "foo"[0] * 3 = " * 3 = """
+            #   "foo"[0:3] = "fo
+            #   """foo"""[0:3] = """
+            is_multiline_string = unprefixed_string[0] * 3 == unprefixed_string[0:3]
             start_row, start_col = token.start
 
-            if is_multiquote_string:
-                # If our string has a valid multiline start, then ignore it
-                if unprefixed_string.startswith(self.config['good_multiline']):
+            # If our string is multiline
+            if is_multiline_string:
+                # If our string is or containing a known good string, then ignore it
+                #   (""")foo""" -> good (continue)
+                #   '''foo(""")''' -> good (continue)
+                #   (''')foo''' -> possibly bad
+                if self.config['good_multiline'] in unprefixed_string:
                     continue
 
+                # Output our error
                 yield {
                     'message': 'Q001 Remove bad quotes from multiline string.',
                     'line': start_row,
                     'col': start_col,
                 }
+            # Otherwise (string is inline quote)
             else:
-                # This covers two cases:
-                # - the string starts and end with the good single quote e.g. 'asdf'
-                # - the string contains a good single quote e.g. "asdf's", which is also OK
+                # If our string is a known good string, then ignore it
+                #   (')foo' -> good (continue)
+                #   "it(')s" -> good (continue)
+                #   (")foo" -> possibly bad
                 if self.config['good_single'] in unprefixed_string:
                     continue
 
+                # Output our error
                 yield {
                     'message': 'Q000 Remove bad quotes.',
                     'line': start_row,
@@ -186,7 +199,7 @@ class QuoteChecker(object):
 
 
 class Token:
-    '''Python 2 and 3 compatible token'''
+    """Python 2 and 3 compatible token"""
     def __init__(self, token):
         self.token = token
 
