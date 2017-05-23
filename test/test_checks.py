@@ -126,7 +126,6 @@ class SinglesAliasTestChecks(TestCase):
 
 
 class MultilineTestChecks(TestCase):
-
     def test_singles(self):
         class Options():
             inline_quotes = '\''
@@ -135,7 +134,7 @@ class MultilineTestChecks(TestCase):
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 0, 'line': 5, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 0, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
     def test_singles_alias(self):
@@ -146,7 +145,7 @@ class MultilineTestChecks(TestCase):
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 0, 'line': 5, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 0, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
     def test_doubles(self):
