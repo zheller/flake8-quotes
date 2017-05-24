@@ -169,12 +169,10 @@ class MultilineTestChecks(TestCase):
             multiline_quotes = 'single'
         QuoteChecker.parse_options(Options)
 
-        multiline_checker = QuoteChecker(None,
-                                         filename=get_absolute_path('data/multiline_string.py'))
-        self.assertEqual(
-            list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-                {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
-            ])
+        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
+        self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
+            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
+        ])
 
 
 class DocstringTestChecks(TestCase):
@@ -186,9 +184,7 @@ class DocstringTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/docstring_doubles.py'))
-        self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-
-        ])
+        self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [])
 
 
 class GetDocstringTokensTests(TestCase):
