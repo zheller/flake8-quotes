@@ -1,4 +1,3 @@
-import ast
 import optparse
 import tokenize
 import warnings
@@ -30,6 +29,10 @@ def get_docstring_tokens(tokens):
     STATE_OTHER = 5
 
     state = STATE_EXPECT_MODULE_DOCSTRING
+    # The number of currently open parentheses, square brackets, etc.
+    # This doesn't check if they're properly balanced, i.e. there isn't ([)], but we shouldn't
+    # need to - if they aren't, it shouldn't parse at all, so we ignore the bracket type
+    bracket_count = 0
     docstring_tokens = set()
 
     for token in tokens:
@@ -44,15 +47,25 @@ def get_docstring_tokens(tokens):
         # A class means we'll expect the class token
         elif token.type == tokenize.NAME and token.string == 'class':
             state = STATE_EXPECT_CLASS_COLON
+            # Just in case - they should be balanced normally
+            bracket_count = 0
         # A def means we'll expect a colon after that
         elif token.type == tokenize.NAME and token.string == 'def':
             state = STATE_EXPECT_FUNCTION_COLON
+            # Just in case - they should be balanced normally
+            bracket_count = 0
         # If we get a colon and we're expecting it, move to the next state
         elif token.type == tokenize.OP and token.string == ':':
-            if state == STATE_EXPECT_CLASS_COLON:
-                state = STATE_EXPECT_CLASS_DOCSTRING
-            elif state == STATE_EXPECT_FUNCTION_COLON:
-                state = STATE_EXPECT_FUNCTION_DOCSTRING
+            # If there are still left brackets open, it must be something other than the block start
+            if bracket_count == 0:
+                if state == STATE_EXPECT_CLASS_COLON:
+                    state = STATE_EXPECT_CLASS_DOCSTRING
+                elif state == STATE_EXPECT_FUNCTION_COLON:
+                    state = STATE_EXPECT_FUNCTION_DOCSTRING
+        elif token.type == tokenize.OP and token.string in ['(', '[', '{']:
+            bracket_count += 1
+        elif token.type == tokenize.OP and token.string in [')', ']', '}']:
+            bracket_count -= 1
         # The token is not one of the recognized types. If we're expecting a colon, then all good,
         # but if we're expecting a docstring, it would no longer be a docstring
         elif state in [STATE_EXPECT_MODULE_DOCSTRING, STATE_EXPECT_CLASS_DOCSTRING,
