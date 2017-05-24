@@ -13,7 +13,6 @@ try:
 except ImportError:
     from flake8 import utils
     import pycodestyle
-
     stdin_get_value = utils.stdin_get_value
     readlines = pycodestyle.readlines
 
@@ -280,7 +279,6 @@ class QuoteChecker(object):
 
 class Token:
     """Python 2 and 3 compatible token"""
-
     def __init__(self, token):
         self.token = token
 
