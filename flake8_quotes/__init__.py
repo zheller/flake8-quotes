@@ -1,3 +1,4 @@
+import ast
 import optparse
 import tokenize
 import warnings
@@ -6,15 +7,60 @@ import warnings
 # https://gitlab.com/pycqa/flake8-polyfill/blob/1.0.1/src/flake8_polyfill/stdin.py#L52-57
 try:
     from flake8.engine import pep8
+
     stdin_get_value = pep8.stdin_get_value
     readlines = pep8.readlines
 except ImportError:
     from flake8 import utils
     import pycodestyle
+
     stdin_get_value = utils.stdin_get_value
     readlines = pycodestyle.readlines
 
 from flake8_quotes.__about__ import __version__
+
+
+def get_docstring_tokens(tokens):
+    # I don't think this is a minimized state machine, but it's clearer this
+    # way. Namely, the class vs. function states can be merged
+    STATE_EXPECT_MODULE_DOCSTRING = 0
+    STATE_EXPECT_CLASS_COLON = 1
+    STATE_EXPECT_CLASS_DOCSTRING = 2
+    STATE_EXPECT_FUNCTION_COLON = 3
+    STATE_EXPECT_FUNCTION_DOCSTRING = 4
+    STATE_OTHER = 5
+
+    state = STATE_EXPECT_MODULE_DOCSTRING
+    docstring_tokens = set()
+
+    for token in tokens:
+        if token.type in [tokenize.NEWLINE, tokenize.INDENT, tokenize.DEDENT, tokenize.NL,
+                          tokenize.COMMENT]:
+            continue
+        if token.type == tokenize.STRING:
+            if state in [STATE_EXPECT_MODULE_DOCSTRING, STATE_EXPECT_CLASS_DOCSTRING,
+                         STATE_EXPECT_FUNCTION_DOCSTRING]:
+                docstring_tokens.add(token)
+                state = STATE_OTHER
+        # A class means we'll expect the class token
+        elif token.type == tokenize.NAME and token.string == 'class':
+            state = STATE_EXPECT_CLASS_COLON
+        # A def means we'll expect a colon after that
+        elif token.type == tokenize.NAME and token.string == 'def':
+            state = STATE_EXPECT_FUNCTION_COLON
+        # If we get a colon and we're expecting it, move to the next state
+        elif token.type == tokenize.OP and token.string == ':':
+            if state == STATE_EXPECT_CLASS_COLON:
+                state = STATE_EXPECT_CLASS_DOCSTRING
+            elif state == STATE_EXPECT_FUNCTION_COLON:
+                state = STATE_EXPECT_FUNCTION_DOCSTRING
+        # The token is not one of the recognized types. If we're expecting a colon, then all good,
+        # but if we're expecting a docstring, it would no longer be a docstring
+        elif state in [STATE_EXPECT_MODULE_DOCSTRING, STATE_EXPECT_CLASS_DOCSTRING,
+                       STATE_EXPECT_FUNCTION_DOCSTRING]:
+            state = STATE_OTHER
+
+    return docstring_tokens
 
 
 class QuoteChecker(object):
@@ -53,6 +99,22 @@ class QuoteChecker(object):
     MULTILINE_QUOTES['double'] = MULTILINE_QUOTES['"']
     MULTILINE_QUOTES['\'\'\''] = MULTILINE_QUOTES['\'']
     MULTILINE_QUOTES['"""'] = MULTILINE_QUOTES['"']
+
+    DOCSTRING_QUOTES = {
+        '\'': {
+            'good_docstring': '\'\'\'',
+            'bad_docstring': '"""',
+        },
+        '"': {
+            'good_docstring': '"""',
+            'bad_docstring': '\'\'\'',
+        },
+    }
+    # Provide Windows CLI and docstring-quote aliases
+    DOCSTRING_QUOTES['single'] = DOCSTRING_QUOTES['\'']
+    DOCSTRING_QUOTES['double'] = DOCSTRING_QUOTES['"']
+    DOCSTRING_QUOTES['\'\'\''] = DOCSTRING_QUOTES['\'']
+    DOCSTRING_QUOTES['"""'] = DOCSTRING_QUOTES['"']
 
     def __init__(self, tree, filename='(none)'):
         self.filename = filename
@@ -100,6 +162,7 @@ class QuoteChecker(object):
         cls.config = {}
         cls.config.update(cls.INLINE_QUOTES['\''])
         cls.config.update(cls.MULTILINE_QUOTES['"""'])
+        cls.config.update(cls.DOCSTRING_QUOTES['"""'])
 
         # If `options.quotes` was specified, then use it
         if hasattr(options, 'quotes') and options.quotes is not None:
@@ -118,6 +181,10 @@ class QuoteChecker(object):
             # cls.config = {good_single: ', good_multiline: """, bad_single: ", bad_multiline: '''}
             #   -> {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
             cls.config.update(cls.MULTILINE_QUOTES[options.multiline_quotes])
+
+        # If docstring quotes was specified, overload our config with those options
+        if hasattr(options, 'docstring_quotes') and options.docstring_quotes is not None:
+            cls.config.update(cls.DOCSTRING_QUOTES[options.docstring_quotes])
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -143,6 +210,8 @@ class QuoteChecker(object):
 
     def get_quotes_errors(self, file_contents):
         tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
+        docstring_tokens = get_docstring_tokens(tokens)
+
         for token in tokens:
 
             if token.type != tokenize.STRING:
@@ -163,11 +232,22 @@ class QuoteChecker(object):
             #   "foo"[0] * 3 = " * 3 = """
             #   "foo"[0:3] = "fo
             #   """foo"""[0:3] = """
+            is_docstring = token in docstring_tokens
             is_multiline_string = unprefixed_string[0] * 3 == unprefixed_string[0:3]
             start_row, start_col = token.start
 
+            # If our string is a docstring
+            if is_docstring:
+                if self.config['good_docstring'] in unprefixed_string:
+                    continue
+
+                yield {
+                    'message': 'Q002 Remove bad quotes from docstring.',
+                    'line': start_row,
+                    'col': start_col,
+                }
             # If our string is multiline
-            if is_multiline_string:
+            elif is_multiline_string:
                 # If our string is or containing a known good string, then ignore it
                 #   (""")foo""" -> good (continue)
                 #   '''foo(""")''' -> good (continue)
@@ -200,6 +280,7 @@ class QuoteChecker(object):
 
 class Token:
     """Python 2 and 3 compatible token"""
+
     def __init__(self, token):
         self.token = token
 
