@@ -184,7 +184,9 @@ class DocstringTestChecks(TestCase):
         self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
             {'col': 0, 'line': 6, 'message': 'Q001 Remove bad quotes from multiline string.'},
             {'col': 4, 'line': 17, 'message': 'Q001 Remove bad quotes from multiline string.'},
-            {'col': 8, 'line': 29, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 20, 'line': 22, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 8, 'line': 31, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 12, 'line': 36, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
     def test_require_single_docstring_double_present(self):
@@ -198,7 +200,7 @@ class DocstringTestChecks(TestCase):
         self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
             {'col': 0, 'line': 2, 'message': 'Q002 Remove bad quotes from docstring.'},
             {'col': 4, 'line': 13, 'message': 'Q002 Remove bad quotes from docstring.'},
-            {'col': 8, 'line': 23, 'message': 'Q002 Remove bad quotes from docstring.'},
+            {'col': 8, 'line': 25, 'message': 'Q002 Remove bad quotes from docstring.'},
         ])
 
     def test_require_double_docstring_single_present(self):
@@ -212,7 +214,7 @@ class DocstringTestChecks(TestCase):
         self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
             {'col': 0, 'line': 2, 'message': 'Q002 Remove bad quotes from docstring.'},
             {'col': 4, 'line': 13, 'message': 'Q002 Remove bad quotes from docstring.'},
-            {'col': 8, 'line': 23, 'message': 'Q002 Remove bad quotes from docstring.'},
+            {'col': 8, 'line': 25, 'message': 'Q002 Remove bad quotes from docstring.'},
         ])
 
     def test_require_single_docstring_single_present(self):
@@ -226,7 +228,9 @@ class DocstringTestChecks(TestCase):
         self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
             {'col': 0, 'line': 6, 'message': 'Q001 Remove bad quotes from multiline string.'},
             {'col': 4, 'line': 17, 'message': 'Q001 Remove bad quotes from multiline string.'},
-            {'col': 8, 'line': 29, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 20, 'line': 22, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 8, 'line': 31, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 12, 'line': 36, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
 
