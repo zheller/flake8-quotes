@@ -1,17 +1,17 @@
-""" abc
+s = """ abc
 def
 ghi """
 
-""" abc
+s = """ abc
 def '''
 ghi
 """
 
-''' abc
+s = ''' abc
 def
 ghi '''
 
-''' abc
+s = ''' abc
 def """
 ghi
 '''

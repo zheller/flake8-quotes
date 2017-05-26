@@ -37,7 +37,7 @@ class DoublesTestChecks(TestCase):
     def test_multiline_string(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_multiline_string.py'))
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 0, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
     def test_wrapped(self):
@@ -86,7 +86,7 @@ class SinglesTestChecks(TestCase):
     def test_multiline_string(self):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_multiline_string.py'))
         self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 0, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
     def test_wrapped(self):
@@ -134,7 +134,7 @@ class MultilineTestChecks(TestCase):
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 0, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 4, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
     def test_singles_alias(self):
@@ -143,9 +143,10 @@ class MultilineTestChecks(TestCase):
             multiline_quotes = 'double'
         QuoteChecker.parse_options(Options)
 
-        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
+        multiline_checker = QuoteChecker(None,
+                                         filename=get_absolute_path('data/multiline_string.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 0, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 4, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
     def test_doubles(self):
@@ -156,7 +157,7 @@ class MultilineTestChecks(TestCase):
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 0, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
     def test_doubles_alias(self):
@@ -167,7 +168,69 @@ class MultilineTestChecks(TestCase):
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 0, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string.'},
+        ])
+
+
+class DocstringTestChecks(TestCase):
+    def test_require_double_docstring_double_present(self):
+        class Options():
+            inline_quotes = 'single'
+            multiline_quotes = 'single'
+            docstring_quotes = 'double'
+        QuoteChecker.parse_options(Options)
+
+        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/docstring_doubles.py'))
+        self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
+            {'col': 0, 'line': 6, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 4, 'line': 17, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 20, 'line': 22, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 8, 'line': 31, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 12, 'line': 36, 'message': 'Q001 Remove bad quotes from multiline string.'},
+        ])
+
+    def test_require_single_docstring_double_present(self):
+        class Options():
+            inline_quotes = 'single'
+            multiline_quotes = 'double'
+            docstring_quotes = 'single'
+        QuoteChecker.parse_options(Options)
+
+        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/docstring_doubles.py'))
+        self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
+            {'col': 0, 'line': 2, 'message': 'Q002 Remove bad quotes from docstring.'},
+            {'col': 4, 'line': 13, 'message': 'Q002 Remove bad quotes from docstring.'},
+            {'col': 8, 'line': 25, 'message': 'Q002 Remove bad quotes from docstring.'},
+        ])
+
+    def test_require_double_docstring_single_present(self):
+        class Options():
+            inline_quotes = 'single'
+            multiline_quotes = 'single'
+            docstring_quotes = 'double'
+        QuoteChecker.parse_options(Options)
+
+        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/docstring_singles.py'))
+        self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
+            {'col': 0, 'line': 2, 'message': 'Q002 Remove bad quotes from docstring.'},
+            {'col': 4, 'line': 13, 'message': 'Q002 Remove bad quotes from docstring.'},
+            {'col': 8, 'line': 25, 'message': 'Q002 Remove bad quotes from docstring.'},
+        ])
+
+    def test_require_single_docstring_single_present(self):
+        class Options():
+            inline_quotes = 'single'
+            multiline_quotes = 'double'
+            docstring_quotes = 'single'
+        QuoteChecker.parse_options(Options)
+
+        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/docstring_singles.py'))
+        self.assertEquals(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
+            {'col': 0, 'line': 6, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 4, 'line': 17, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 20, 'line': 22, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 8, 'line': 31, 'message': 'Q001 Remove bad quotes from multiline string.'},
+            {'col': 12, 'line': 36, 'message': 'Q001 Remove bad quotes from multiline string.'},
         ])
 
 
