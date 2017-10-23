@@ -54,7 +54,7 @@ class QuoteChecker(object):
     MULTILINE_QUOTES['\'\'\''] = MULTILINE_QUOTES['\'']
     MULTILINE_QUOTES['"""'] = MULTILINE_QUOTES['"']
 
-    def __init__(self, tree, filename='(none)', builtins=None):
+    def __init__(self, tree, filename='(none)'):
         self.filename = filename
 
     @staticmethod
