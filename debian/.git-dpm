@@ -1,0 +1,11 @@
+# see git-dpm(1) from git-dpm package
+9e3bdabfd8cbed3285c613bcfc3b3fd23dcb07a7
+9e3bdabfd8cbed3285c613bcfc3b3fd23dcb07a7
+9e3bdabfd8cbed3285c613bcfc3b3fd23dcb07a7
+9e3bdabfd8cbed3285c613bcfc3b3fd23dcb07a7
+ipdb_0.10.1.orig.tar.gz
+c7fd8986d9ebb838abdb38f7b2c4bf85ad470142
+8595
+debianTag="debian/%e%v"
+patchedTag="patched/%e%v"
+upstreamTag="upstream/%e%u"
