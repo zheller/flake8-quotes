@@ -1,0 +1,18 @@
+Source: python3-flake8-quotes
+Section: python
+Priority: optional
+Maintainer: Jeffrey Cliff <jeffrey.cliff@gmail.com>
+Uploaders: Jeffrey Cliff <jeffrey.cliff@gmail.com>
+Build-Depends: debhelper (>= 8), dh-python, python3-all, python3(>= 3.0), python3-flake8(>= 3.3.0), tox(>= 2.3.1)
+Standards-Version: 3.9.8
+Homepage: https://github.com/zheller/flake8-quotes
+
+Package: python3-flake8-quotes
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends}, python3-flake8
+Description:  Flake8 extension for checking quotes in python
+ Lint/flake8 extension for quotes.  Supports double quotes, single quotes,
+ multiline quotes, and "'''". Now you don't need to worry about people 
+ constantly complaining that you are using double-quotes and not 
+ single-quotes.
+
