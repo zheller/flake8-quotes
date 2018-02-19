@@ -50,3 +50,13 @@ or configuration option in `tox.ini`/`setup.cfg`.
     # multiline-quotes = '
     # We also support "'''"
     # multiline-quotes = '''
+
+Caveats
+-------
+
+We follow the `PEP8 conventions <https://www.python.org/dev/peps/pep-0008/#string-quotes>`_ to avoid backslashes in the string. So, no matter what configuration you are using (single or double quotes) these are always valid strings
+
+.. code:: python
+
+    s = 'double "quotes" wrapped in singles are ignored'
+    s = "single 'quotes' wrapped in doubles are ignored"
