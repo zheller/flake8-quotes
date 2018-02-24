@@ -177,7 +177,7 @@ class QuoteChecker(object):
 
                 # Output our error
                 yield {
-                    'message': 'Q001 Remove bad quotes from multiline string.',
+                    'message': 'Q001 Remove bad quotes from multiline string',
                     'line': start_row,
                     'col': start_col,
                 }
@@ -192,7 +192,7 @@ class QuoteChecker(object):
 
                 # Output our error
                 yield {
-                    'message': 'Q000 Remove bad quotes.',
+                    'message': 'Q000 Remove bad quotes',
                     'line': start_row,
                     'col': start_col,
                 }
