@@ -2,18 +2,6 @@ import optparse
 import tokenize
 import warnings
 
-# Polyfill stdin loading/reading lines
-# https://gitlab.com/pycqa/flake8-polyfill/blob/1.0.1/src/flake8_polyfill/stdin.py#L52-57
-try:
-    from flake8.engine import pep8
-    stdin_get_value = pep8.stdin_get_value
-    readlines = pep8.readlines
-except ImportError:
-    from flake8 import utils
-    import pycodestyle
-    stdin_get_value = utils.stdin_get_value
-    readlines = pycodestyle.readlines
-
 from flake8_quotes.__about__ import __version__
 
 
@@ -54,8 +42,8 @@ class QuoteChecker(object):
     MULTILINE_QUOTES['\'\'\''] = MULTILINE_QUOTES['\'']
     MULTILINE_QUOTES['"""'] = MULTILINE_QUOTES['"']
 
-    def __init__(self, tree, filename='(none)'):
-        self.filename = filename
+    def __init__(self, tree, lines):
+        self.lines = lines
 
     @staticmethod
     def _register_opt(parser, *args, **kwargs):
@@ -119,30 +107,22 @@ class QuoteChecker(object):
             #   -> {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
             cls.config.update(cls.MULTILINE_QUOTES[options.multiline_quotes])
 
-    def get_file_contents(self):
-        if self.filename in ('stdin', '-', None):
-            return stdin_get_value().splitlines(True)
-        else:
-            return readlines(self.filename)
-
     def run(self):
-        file_contents = self.get_file_contents()
-
-        noqa_line_numbers = self.get_noqa_lines(file_contents)
-        errors = self.get_quotes_errors(file_contents)
+        noqa_line_numbers = self.get_noqa_lines()
+        errors = self.get_quotes_errors()
 
         for error in errors:
             if error.get('line') not in noqa_line_numbers:
                 yield (error.get('line'), error.get('col'), error.get('message'), type(self))
 
-    def get_noqa_lines(self, file_contents):
-        tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
+    def get_noqa_lines(self):
+        tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(self.lines): next(L))]
         return [token.start_row
                 for token in tokens
                 if token.type == tokenize.COMMENT and token.string.endswith('noqa')]
 
-    def get_quotes_errors(self, file_contents):
-        tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
+    def get_quotes_errors(self):
+        tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(self.lines): next(L))]
         for token in tokens:
 
             if token.type != tokenize.STRING:
