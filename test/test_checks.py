@@ -7,6 +7,7 @@ from unittest import TestCase
 class TestChecks(TestCase):
     def test_get_noqa_lines(self):
         checker = QuoteChecker(None, lines=get_lines('data/no_qa.py'))
+        list(checker.run())
         self.assertEqual(checker.get_noqa_lines(), [2])
 
 
@@ -36,20 +37,20 @@ class DoublesTestChecks(TestCase):
 
     def test_multiline_string(self):
         doubles_checker = QuoteChecker(None, lines=get_lines('data/doubles_multiline_string.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors()), [
-            {'col': 0, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        self.assertEqual(list(doubles_checker.run()), [
+            (1, 0, 'Q001 Remove bad quotes from multiline string', QuoteChecker),
         ])
 
     def test_wrapped(self):
         doubles_checker = QuoteChecker(None, lines=get_lines('data/doubles_wrapped.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors()), [])
+        self.assertEqual(list(doubles_checker.run()), [])
 
     def test_doubles(self):
         doubles_checker = QuoteChecker(None, lines=get_lines('data/doubles.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors()), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes'},
+        self.assertEqual(list(doubles_checker.run()), [
+            (1, 24, 'Q000 Remove bad quotes', QuoteChecker),
+            (2, 24, 'Q000 Remove bad quotes', QuoteChecker),
+            (3, 24, 'Q000 Remove bad quotes', QuoteChecker),
         ])
 
     def test_noqa_doubles(self):
@@ -66,13 +67,13 @@ class DoublesAliasTestChecks(TestCase):
 
     def test_doubles(self):
         doubles_checker = QuoteChecker(None, lines=get_lines('data/doubles_wrapped.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors()), [])
+        self.assertEqual(list(doubles_checker.run()), [])
 
         doubles_checker = QuoteChecker(None, lines=get_lines('data/doubles.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors()), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes'},
+        self.assertEqual(list(doubles_checker.run()), [
+            (1, 24, 'Q000 Remove bad quotes', QuoteChecker),
+            (2, 24, 'Q000 Remove bad quotes', QuoteChecker),
+            (3, 24, 'Q000 Remove bad quotes', QuoteChecker),
         ])
 
 
@@ -85,20 +86,20 @@ class SinglesTestChecks(TestCase):
 
     def test_multiline_string(self):
         singles_checker = QuoteChecker(None, lines=get_lines('data/singles_multiline_string.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors()), [
-            {'col': 0, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        self.assertEqual(list(singles_checker.run()), [
+            (1, 0, 'Q001 Remove bad quotes from multiline string', QuoteChecker),
         ])
 
     def test_wrapped(self):
         singles_checker = QuoteChecker(None, lines=get_lines('data/singles_wrapped.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors()), [])
+        self.assertEqual(list(singles_checker.run()), [])
 
     def test_singles(self):
         singles_checker = QuoteChecker(None, lines=get_lines('data/singles.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors()), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes'},
+        self.assertEqual(list(singles_checker.run()), [
+            (1, 24, 'Q000 Remove bad quotes', QuoteChecker),
+            (2, 24, 'Q000 Remove bad quotes', QuoteChecker),
+            (3, 24, 'Q000 Remove bad quotes', QuoteChecker),
         ])
 
     def test_noqa_singles(self):
@@ -115,13 +116,13 @@ class SinglesAliasTestChecks(TestCase):
 
     def test_singles(self):
         singles_checker = QuoteChecker(None, lines=get_lines('data/singles_wrapped.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors()), [])
+        self.assertEqual(list(singles_checker.run()), [])
 
         singles_checker = QuoteChecker(None, lines=get_lines('data/singles.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors()), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes'},
+        self.assertEqual(list(singles_checker.run()), [
+            (1, 24, 'Q000 Remove bad quotes', QuoteChecker),
+            (2, 24, 'Q000 Remove bad quotes', QuoteChecker),
+            (3, 24, 'Q000 Remove bad quotes', QuoteChecker),
         ])
 
 
@@ -133,8 +134,8 @@ class MultilineTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, lines=get_lines('data/multiline_string.py'))
-        self.assertEqual(list(multiline_checker.get_quotes_errors()), [
-            {'col': 0, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string'},
+        self.assertEqual(list(multiline_checker.run()), [
+            (10, 0, 'Q001 Remove bad quotes from multiline string', QuoteChecker),
         ])
 
     def test_singles_alias(self):
@@ -144,8 +145,8 @@ class MultilineTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, lines=get_lines('data/multiline_string.py'))
-        self.assertEqual(list(multiline_checker.get_quotes_errors()), [
-            {'col': 0, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string'},
+        self.assertEqual(list(multiline_checker.run()), [
+            (10, 0, 'Q001 Remove bad quotes from multiline string', QuoteChecker),
         ])
 
     def test_doubles(self):
@@ -155,8 +156,8 @@ class MultilineTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, lines=get_lines('data/multiline_string.py'))
-        self.assertEqual(list(multiline_checker.get_quotes_errors()), [
-            {'col': 0, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        self.assertEqual(list(multiline_checker.run()), [
+            (1, 0, 'Q001 Remove bad quotes from multiline string', QuoteChecker),
         ])
 
     def test_doubles_alias(self):
@@ -166,8 +167,8 @@ class MultilineTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, lines=get_lines('data/multiline_string.py'))
-        self.assertEqual(list(multiline_checker.get_quotes_errors()), [
-            {'col': 0, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        self.assertEqual(list(multiline_checker.run()), [
+            (1, 0, 'Q001 Remove bad quotes from multiline string', QuoteChecker),
         ])
 
 

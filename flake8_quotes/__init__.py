@@ -108,23 +108,23 @@ class QuoteChecker(object):
             cls.config.update(cls.MULTILINE_QUOTES[options.multiline_quotes])
 
     def run(self):
-        noqa_line_numbers = self.get_noqa_lines()
-        errors = self.get_quotes_errors()
-
-        for error in errors:
+        self._tokens = [Token(t)
+                        for t in tokenize.generate_tokens(
+                                lambda L=iter(self.lines): next(L))]
+        noqa_line_numbers = None
+        for error in self.get_quotes_errors():
+            if noqa_line_numbers is None:
+                noqa_line_numbers = self.get_noqa_lines()
             if error.get('line') not in noqa_line_numbers:
                 yield (error.get('line'), error.get('col'), error.get('message'), type(self))
 
     def get_noqa_lines(self):
-        tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(self.lines): next(L))]
         return [token.start_row
-                for token in tokens
+                for token in self._tokens
                 if token.type == tokenize.COMMENT and token.string.endswith('noqa')]
 
     def get_quotes_errors(self):
-        tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(self.lines): next(L))]
-        for token in tokens:
-
+        for token in self._tokens:
             if token.type != tokenize.STRING:
                 # ignore non strings
                 continue
