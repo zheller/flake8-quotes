@@ -31,6 +31,11 @@ class GetDocstringTokensTests(TestCase):
             '"""\nDouble quotes multiline module docstring\n"""',
             '"""\n    Double quotes multiline class docstring\n    """',
             '"""\n        Double quotes multiline function docstring\n        """',
+            '""" Double quotes single line class docstring """',
+            '""" Double quotes single line function docstring"""',
+            '"""function without params, single line docstring"""',
+            '"""\n        function without params, multiline docstring\n    """',
+            '""" inline docstring """'
         })
 
     def test_get_docstring_tokens_singles(self):
@@ -41,4 +46,9 @@ class GetDocstringTokensTests(TestCase):
             "'''\nSingle quotes multiline module docstring\n'''",
             "'''\n    Single quotes multiline class docstring\n    '''",
             "'''\n        Single quotes multiline function docstring\n        '''",
+            "''' Single quotes single line class docstring '''",
+            "''' Single quotes single line function docstring'''",
+            "'''function without params, single line docstring'''",
+            "'''\n        function without params, multiline line docstring\n    '''",
+            "''' inline docstring '''"
         })

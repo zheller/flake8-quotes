@@ -186,6 +186,12 @@ class DocstringTestChecks(TestCase):
             {'col': 20, 'line': 22, 'message': 'Q001 Remove bad quotes from multiline string'},
             {'col': 8, 'line': 31, 'message': 'Q001 Remove bad quotes from multiline string'},
             {'col': 12, 'line': 36, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 22, 'line': 44, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 8, 'line': 48, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 12, 'line': 51, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 16, 'line': 53, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 4, 'line': 60, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 4, 'line': 67, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
     def test_require_single_docstring_double_present(self):
@@ -200,6 +206,11 @@ class DocstringTestChecks(TestCase):
             {'col': 0, 'line': 2, 'message': 'Q002 Remove bad quotes from docstring'},
             {'col': 4, 'line': 13, 'message': 'Q002 Remove bad quotes from docstring'},
             {'col': 8, 'line': 25, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 4, 'line': 42, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 8, 'line': 45, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 28, 'line': 56, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 4, 'line': 59, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 4, 'line': 64, 'message': 'Q002 Remove bad quotes from docstring'},
         ])
 
     def test_require_double_docstring_single_present(self):
@@ -212,8 +223,13 @@ class DocstringTestChecks(TestCase):
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/docstring_singles.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
             {'col': 0, 'line': 2, 'message': 'Q002 Remove bad quotes from docstring'},
-            {'col': 4, 'line': 13, 'message': 'Q002 Remove bad quotes from docstring'},
-            {'col': 8, 'line': 25, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 4, 'line': 15, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 8, 'line': 27, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 4, 'line': 45, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 8, 'line': 48, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 28, 'line': 59, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 4, 'line': 62, 'message': 'Q002 Remove bad quotes from docstring'},
+            {'col': 4, 'line': 67, 'message': 'Q002 Remove bad quotes from docstring'},
         ])
 
     def test_require_single_docstring_single_present(self):
@@ -226,10 +242,17 @@ class DocstringTestChecks(TestCase):
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/docstring_singles.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
             {'col': 0, 'line': 6, 'message': 'Q001 Remove bad quotes from multiline string'},
-            {'col': 4, 'line': 17, 'message': 'Q001 Remove bad quotes from multiline string'},
-            {'col': 20, 'line': 22, 'message': 'Q001 Remove bad quotes from multiline string'},
-            {'col': 8, 'line': 31, 'message': 'Q001 Remove bad quotes from multiline string'},
-            {'col': 12, 'line': 36, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 20, 'line': 12, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 4, 'line': 19, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 20, 'line': 24, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 8, 'line': 33, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 12, 'line': 38, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 22, 'line': 47, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 8, 'line': 51, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 12, 'line': 54, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 16, 'line': 56, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 4, 'line': 63, 'message': 'Q001 Remove bad quotes from multiline string'},
+            {'col': 4, 'line': 70, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
 

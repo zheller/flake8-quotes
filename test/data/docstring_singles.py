@@ -9,7 +9,9 @@ this is not a docstring
 
 l = []
 
-class Cls:
+class Cls(MakeKlass('''
+    class params \t not a docstring
+''')):
     '''
     Single quotes multiline class docstring
     '''
@@ -36,3 +38,34 @@ class Cls:
             '''
             Looks like a docstring, but in reality it isn't - only modules, classes and functions
             '''
+            pass
+
+
+class SingleLinedDocstrings():
+    ''' Single quotes single line class docstring '''
+
+    def foo(self, bar='''not a docstring'''):
+        ''' Single quotes single line function docstring'''
+
+        a = 10
+        ''' just string'''
+
+        for i in range(a):
+            ''' not a docstring'''
+            if a < i:
+                ''' also not a docstring '''
+                pass
+
+    class Nested(foo()[:]): ''' inline docstring '''; pass
+
+def foo():
+    '''function without params, single line docstring'''
+    ''' not a docstring'''
+    return
+
+def foo2():
+    '''
+        function without params, multiline line docstring
+    '''
+    ''' not a docstring'''
+    return
