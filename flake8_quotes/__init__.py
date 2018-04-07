@@ -6,7 +6,6 @@ import warnings
 # https://gitlab.com/pycqa/flake8-polyfill/blob/1.0.1/src/flake8_polyfill/stdin.py#L52-57
 try:
     from flake8.engine import pep8
-
     stdin_get_value = pep8.stdin_get_value
     readlines = pep8.readlines
 except ImportError:
@@ -198,7 +197,7 @@ class QuoteChecker(object):
                     continue
 
                 yield {
-                    'message': 'Q002 Remove bad quotes from docstring.',
+                    'message': 'Q002 Remove bad quotes from docstring',
                     'line': start_row,
                     'col': start_col,
                 }
