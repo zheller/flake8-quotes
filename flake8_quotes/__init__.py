@@ -109,6 +109,10 @@ class QuoteChecker(object):
                           parse_from_config=True, type='choice',
                           choices=sorted(cls.MULTILINE_QUOTES.keys()),
                           help='Quote to expect in all files (default: """)')
+        cls._register_opt(parser, '--docstring-quotes', default=None, action='store',
+                          parse_from_config=True, type='choice',
+                          choices=sorted(cls.DOCSTRING_QUOTES.keys()),
+                          help='Quote to expect in all files (default: """)')
 
     @classmethod
     def parse_options(cls, options):
