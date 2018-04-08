@@ -36,6 +36,10 @@ By default, we expect single quotes (') and look for unwanted double quotes (").
     # flake8 --inline-quotes '"' --multiline-quotes "'"
     # We also support "'''"
     # flake8 --inline-quotes '"' --multiline-quotes "'''"
+    #
+    # We also support docstring quotes similarly
+    # flake8 --inline-quotes '"' --docstring-quotes "'"
+    # flake8 --inline-quotes '"' --docstring-quotes "'''"
 
 
 or configuration option in `tox.ini`/`setup.cfg`.
@@ -50,6 +54,10 @@ or configuration option in `tox.ini`/`setup.cfg`.
     # multiline-quotes = '
     # We also support "'''"
     # multiline-quotes = '''
+    #
+    # We also support docstring quotes similarly
+    # docstring-quotes = '
+    # docstring-quotes = '''
 
 Caveats
 -------

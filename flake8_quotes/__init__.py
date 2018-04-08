@@ -196,6 +196,7 @@ class QuoteChecker(object):
             start_row, start_col = token.start
 
             # If our string is a docstring
+            # DEV: Docstring quotes must come before multiline quotes as it can as a multiline quote
             if is_docstring:
                 if self.config['good_docstring'] in unprefixed_string:
                     continue
@@ -205,7 +206,7 @@ class QuoteChecker(object):
                     'line': start_row,
                     'col': start_col,
                 }
-            # If our string is multiline
+            # Otherwise if our string is multiline
             elif is_multiline_string:
                 # If our string is or containing a known good string, then ignore it
                 #   (""")foo""" -> good (continue)
