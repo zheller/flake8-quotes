@@ -22,6 +22,7 @@ class GetDocstringTokensTests(TestCase):
         self.assertEqual(self._get_docstring_tokens('data/singles_multiline_string.py'), set())
         self.assertEqual(self._get_docstring_tokens('data/singles_noqa.py'), set())
         self.assertEqual(self._get_docstring_tokens('data/singles_wrapped.py'), set())
+        self.assertEqual(self._get_docstring_tokens('data/docstring_not_docstrings.py'), set())
 
     def test_get_docstring_tokens_doubles(self):
         with open(get_absolute_path('data/docstring_doubles.py'), 'r') as f:
@@ -31,11 +32,6 @@ class GetDocstringTokensTests(TestCase):
             '"""\nDouble quotes multiline module docstring\n"""',
             '"""\n    Double quotes multiline class docstring\n    """',
             '"""\n        Double quotes multiline function docstring\n        """',
-            '""" Double quotes single line class docstring """',
-            '""" Double quotes single line function docstring"""',
-            '"""function without params, single line docstring"""',
-            '"""\n        function without params, multiline docstring\n    """',
-            '""" inline docstring """'
         })
 
     def test_get_docstring_tokens_singles(self):
@@ -46,9 +42,4 @@ class GetDocstringTokensTests(TestCase):
             "'''\nSingle quotes multiline module docstring\n'''",
             "'''\n    Single quotes multiline class docstring\n    '''",
             "'''\n        Single quotes multiline function docstring\n        '''",
-            "''' Single quotes single line class docstring '''",
-            "''' Single quotes single line function docstring'''",
-            "'''function without params, single line docstring'''",
-            "'''\n        function without params, multiline line docstring\n    '''",
-            "''' inline docstring '''"
         })
