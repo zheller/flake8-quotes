@@ -15,6 +15,7 @@ except ImportError:
     readlines = pycodestyle.readlines
 
 from flake8_quotes.__about__ import __version__
+from flake8_quotes.docstring_detection import get_docstring_tokens
 
 
 class QuoteChecker(object):
@@ -54,6 +55,22 @@ class QuoteChecker(object):
     MULTILINE_QUOTES['\'\'\''] = MULTILINE_QUOTES['\'']
     MULTILINE_QUOTES['"""'] = MULTILINE_QUOTES['"']
 
+    DOCSTRING_QUOTES = {
+        '\'': {
+            'good_docstring': '\'\'\'',
+            'bad_docstring': '"""',
+        },
+        '"': {
+            'good_docstring': '"""',
+            'bad_docstring': '\'\'\'',
+        },
+    }
+    # Provide Windows CLI and docstring-quote aliases
+    DOCSTRING_QUOTES['single'] = DOCSTRING_QUOTES['\'']
+    DOCSTRING_QUOTES['double'] = DOCSTRING_QUOTES['"']
+    DOCSTRING_QUOTES['\'\'\''] = DOCSTRING_QUOTES['\'']
+    DOCSTRING_QUOTES['"""'] = DOCSTRING_QUOTES['"']
+
     def __init__(self, tree, filename='(none)'):
         self.filename = filename
 
@@ -92,6 +109,10 @@ class QuoteChecker(object):
                           parse_from_config=True, type='choice',
                           choices=sorted(cls.MULTILINE_QUOTES.keys()),
                           help='Quote to expect in all files (default: """)')
+        cls._register_opt(parser, '--docstring-quotes', default=None, action='store',
+                          parse_from_config=True, type='choice',
+                          choices=sorted(cls.DOCSTRING_QUOTES.keys()),
+                          help='Quote to expect in all files (default: """)')
 
     @classmethod
     def parse_options(cls, options):
@@ -100,6 +121,7 @@ class QuoteChecker(object):
         cls.config = {}
         cls.config.update(cls.INLINE_QUOTES['\''])
         cls.config.update(cls.MULTILINE_QUOTES['"""'])
+        cls.config.update(cls.DOCSTRING_QUOTES['"""'])
 
         # If `options.quotes` was specified, then use it
         if hasattr(options, 'quotes') and options.quotes is not None:
@@ -118,6 +140,10 @@ class QuoteChecker(object):
             # cls.config = {good_single: ', good_multiline: """, bad_single: ", bad_multiline: '''}
             #   -> {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
             cls.config.update(cls.MULTILINE_QUOTES[options.multiline_quotes])
+
+        # If docstring quotes was specified, overload our config with those options
+        if hasattr(options, 'docstring_quotes') and options.docstring_quotes is not None:
+            cls.config.update(cls.DOCSTRING_QUOTES[options.docstring_quotes])
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -143,6 +169,8 @@ class QuoteChecker(object):
 
     def get_quotes_errors(self, file_contents):
         tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
+        docstring_tokens = get_docstring_tokens(tokens)
+
         for token in tokens:
 
             if token.type != tokenize.STRING:
@@ -163,11 +191,22 @@ class QuoteChecker(object):
             #   "foo"[0] * 3 = " * 3 = """
             #   "foo"[0:3] = "fo
             #   """foo"""[0:3] = """
+            is_docstring = token in docstring_tokens
             is_multiline_string = unprefixed_string[0] * 3 == unprefixed_string[0:3]
             start_row, start_col = token.start
 
+            # If our string is a docstring
+            if is_docstring:
+                if self.config['good_docstring'] in unprefixed_string:
+                    continue
+
+                yield {
+                    'message': 'Q002 Remove bad quotes from docstring',
+                    'line': start_row,
+                    'col': start_col,
+                }
             # If our string is multiline
-            if is_multiline_string:
+            elif is_multiline_string:
                 # If our string is or containing a known good string, then ignore it
                 #   (""")foo""" -> good (continue)
                 #   '''foo(""")''' -> good (continue)

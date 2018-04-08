@@ -1,7 +1,7 @@
-""" This "should"
+s = """ This "should"
 "not" be
 "linted" """
 
-''' This "should"
+s = ''' This "should"
 "not" be
 linted "either" '''
