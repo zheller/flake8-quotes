@@ -21,6 +21,17 @@ If you are using flake8 it's as easy as:
 Now you don't need to worry about people like @sectioneight constantly
 complaining that you are using double-quotes and not single-quotes.
 
+Warnings
+--------
+
+This package adds one flake8 warning ```Q0```.
+You might want to enable this warning inside `flake8` configuration file.
+Typically that will be `.flake8` inside the root folder of your project.
+
+.. code:: ini
+
+    select = Q0
+
 Configuration
 -------------
 
