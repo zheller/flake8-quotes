@@ -223,19 +223,36 @@ class QuoteChecker(object):
                 }
             # Otherwise (string is inline quote)
             else:
-                # If our string is a known good string, then ignore it
-                #   (')foo' -> good (continue)
-                #   "it(')s" -> good (continue)
-                #   (")foo" -> possibly bad
-                if self.config['good_single'] in unprefixed_string:
+                #   'This is a string'       -> Good
+                #   'This is a "string"'     -> Good
+                #   'This is a \"string\"'   -> Good
+                #   'This is a \'string\''   -> Bad (Q004)  Escaped inner quotes
+                #   '"This" is a \'string\'' -> Good        Changing outer quotes would not avoid escaping
+                #   "This is a string"       -> Bad (Q000)
+                #   "This is a 'string'"     -> Good        Avoids escaped inner quotes
+                #   "This is a \"string\""   -> Bad (Q000)
+                #   "\"This\" is a 'string'" -> Bad (Q000)
+                
+                middle = unprefixed_string[1:-1]
+                
+                # Correct outer quote characters
+                if last_quote_char == self.config['good_single']:
+                    if self.config['good_single'] in middle and not self.config['bad_single'] in middle:
+                        yield {
+                            'message': 'Q003 Change outer quotes to avoid escaping inner quotes',
+                            'line': start_row,
+                            'col': start_col,
+                        }
                     continue
-
-                # Output our error
-                yield {
-                    'message': 'Q000 Remove bad quotes',
-                    'line': start_row,
-                    'col': start_col,
-                }
+                
+                # Incorrect outer quote characters
+                if not self.config['good_single'] in middle or self.config['bad_single'] in middle:
+                    yield {
+                        'message': 'Q000 Remove bad quotes',
+                        'line': start_row,
+                        'col': start_col,
+                    }
+        
 
 
 class Token:
