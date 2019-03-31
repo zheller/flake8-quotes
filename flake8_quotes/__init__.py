@@ -122,6 +122,7 @@ class QuoteChecker(object):
         cls.config.update(cls.INLINE_QUOTES['\''])
         cls.config.update(cls.MULTILINE_QUOTES['"""'])
         cls.config.update(cls.DOCSTRING_QUOTES['"""'])
+        cls.config.update({'avoid_escape': True})
 
         # If `options.quotes` was specified, then use it
         if hasattr(options, 'quotes') and options.quotes is not None:
@@ -144,6 +145,10 @@ class QuoteChecker(object):
         # If docstring quotes was specified, overload our config with those options
         if hasattr(options, 'docstring_quotes') and options.docstring_quotes is not None:
             cls.config.update(cls.DOCSTRING_QUOTES[options.docstring_quotes])
+
+        # If allow-escaped specified, add to config
+        if hasattr(options, 'avoid_escape') and options.avoid_escape is not None:
+            cls.config.update({'avoid_escape': options.avoid_escape})
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -237,6 +242,8 @@ class QuoteChecker(object):
                 
                 # Correct outer quote characters
                 if last_quote_char == self.config['good_single']:
+                    if not self.config['avoid_escape']:
+                        continue
                     if self.config['good_single'] in middle and not self.config['bad_single'] in middle:
                         yield {
                             'message': 'Q003 Change outer quotes to avoid escaping inner quotes',

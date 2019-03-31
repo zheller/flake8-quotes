@@ -56,15 +56,6 @@ class DoublesTestChecks(TestCase):
         checker = QuoteChecker(None, get_absolute_path('data/doubles_noqa.py'))
         self.assertEqual(list(checker.run()), [])
 
-    def test_nested(self):
-        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_escaped.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 25, 'line': 4, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
-            {'col': 25, 'line': 6, 'message': 'Q000 Remove bad quotes'},
-            {'col': 25, 'line': 8, 'message': 'Q000 Remove bad quotes'},
-            {'col': 25, 'line': 9, 'message': 'Q000 Remove bad quotes'},
-        ])
-
 
 class DoublesAliasTestChecks(TestCase):
     def setUp(self):
@@ -113,15 +104,6 @@ class SinglesTestChecks(TestCase):
     def test_noqa_singles(self):
         checker = QuoteChecker(None, get_absolute_path('data/singles_noqa.py'))
         self.assertEqual(list(checker.run()), [])
-
-    def test_nested(self):
-        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_escaped.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 25, 'line': 4, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
-            {'col': 25, 'line': 6, 'message': 'Q000 Remove bad quotes'},
-            {'col': 25, 'line': 8, 'message': 'Q000 Remove bad quotes'},
-            {'col': 25, 'line': 9, 'message': 'Q000 Remove bad quotes'},
-        ])
 
 
 class SinglesAliasTestChecks(TestCase):
@@ -186,6 +168,62 @@ class MultilineTestChecks(TestCase):
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
             {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        ])
+
+
+class AvoidEscapeTestChecks(TestCase):
+
+    def test_singles_default(self):
+        class Options():
+            inline_quotes = '\''
+        QuoteChecker.parse_options(Options)
+
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/escaped_prefer_singles.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
+            {'col': 25, 'line': 4, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
+            {'col': 25, 'line': 6, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 8, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 9, 'message': 'Q000 Remove bad quotes'},
+        ])
+
+    def test_singles_avoid(self):
+        class Options():
+            inline_quotes = '\''
+            avoid_escape = True
+        QuoteChecker.parse_options(Options)
+
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/escaped_prefer_singles.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
+            {'col': 25, 'line': 4, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
+            {'col': 25, 'line': 6, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 8, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 9, 'message': 'Q000 Remove bad quotes'},
+        ])
+
+    def test_singles_allow(self):
+        class Options():
+            inline_quotes = '\''
+            avoid_escape = False
+        QuoteChecker.parse_options(Options)
+
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/escaped_prefer_singles.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
+            {'col': 25, 'line': 6, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 8, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 9, 'message': 'Q000 Remove bad quotes'},
+        ])
+
+    def test_doubles(self):
+        class Options():
+            inline_quotes = '"'
+        QuoteChecker.parse_options(Options)
+
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/escaped_prefer_doubles.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
+            {'col': 25, 'line': 4, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
+            {'col': 25, 'line': 6, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 8, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 9, 'message': 'Q000 Remove bad quotes'},
         ])
 
 
