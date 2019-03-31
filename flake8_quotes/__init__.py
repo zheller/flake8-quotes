@@ -113,6 +113,10 @@ class QuoteChecker(object):
                           parse_from_config=True, type='choice',
                           choices=sorted(cls.DOCSTRING_QUOTES.keys()),
                           help='Quote to expect in all files (default: """)')
+        cls._register_opt(parser, '--avoid-escape', default=None, action='store',
+                          parse_from_config=True, type='choice',
+                          choices=['true','false'],
+                          help='Avoid escapes in inline strings (allowed: "true", "false",  default: "true")')
 
     @classmethod
     def parse_options(cls, options):
@@ -148,7 +152,8 @@ class QuoteChecker(object):
 
         # If allow-escaped specified, add to config
         if hasattr(options, 'avoid_escape') and options.avoid_escape is not None:
-            cls.config.update({'avoid_escape': options.avoid_escape})
+            avoid_escape = {'true': True, 'false': False}[options.avoid_escape]
+            cls.config.update({'avoid_escape': avoid_escape})
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
