@@ -243,13 +243,13 @@ class QuoteChecker(object):
                 #   "This is a \"string\""   -> Bad (Q000)
                 #   "\"This\" is a 'string'" -> Bad (Q000)
                 
-                middle = unprefixed_string[1:-1]
+                string_contents = unprefixed_string[1:-1]
                 
-                # Correct outer quote characters
+                # If string preferred type, check for escapes
                 if last_quote_char == self.config['good_single']:
                     if not self.config['avoid_escape']:
                         continue
-                    if self.config['good_single'] in middle and not self.config['bad_single'] in middle:
+                    if self.config['good_single'] in string_contents and not self.config['bad_single'] in string_contents:
                         yield {
                             'message': 'Q003 Change outer quotes to avoid escaping inner quotes',
                             'line': start_row,
@@ -257,8 +257,8 @@ class QuoteChecker(object):
                         }
                     continue
                 
-                # Incorrect outer quote characters
-                if not self.config['good_single'] in middle or self.config['bad_single'] in middle:
+                # If not preferred type, only allow use to avoid escapes.
+                if not self.config['good_single'] in string_contents or self.config['bad_single'] in string_contents:
                     yield {
                         'message': 'Q000 Remove bad quotes',
                         'line': start_row,
