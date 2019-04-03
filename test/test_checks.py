@@ -30,8 +30,8 @@ class TestFlake8Stdin(TestCase):
 class DoublesTestChecks(TestCase):
     def setUp(self):
         class DoublesOptions():
-            inline_quotes = '\''
-            multiline_quotes = '\''
+            inline_quotes = "'"
+            multiline_quotes = "'"
         QuoteChecker.parse_options(DoublesOptions)
 
     def test_multiline_string(self):
@@ -128,7 +128,7 @@ class SinglesAliasTestChecks(TestCase):
 class MultilineTestChecks(TestCase):
     def test_singles(self):
         class Options():
-            inline_quotes = '\''
+            inline_quotes = "'"
             multiline_quotes = '"'
         QuoteChecker.parse_options(Options)
 
@@ -151,7 +151,7 @@ class MultilineTestChecks(TestCase):
     def test_doubles(self):
         class Options():
             inline_quotes = '"'
-            multiline_quotes = '\''
+            multiline_quotes = "'"
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
@@ -175,7 +175,7 @@ class AvoidEscapeTestChecks(TestCase):
 
     def test_singles_default(self):
         class Options():
-            inline_quotes = '\''
+            inline_quotes = "'"
         QuoteChecker.parse_options(Options)
 
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/escaped_prefer_singles.py'))
@@ -188,7 +188,7 @@ class AvoidEscapeTestChecks(TestCase):
 
     def test_singles_avoid(self):
         class Options():
-            inline_quotes = '\''
+            inline_quotes = "'"
             avoid_escape = 'true'
         QuoteChecker.parse_options(Options)
 
@@ -202,7 +202,7 @@ class AvoidEscapeTestChecks(TestCase):
 
     def test_singles_allow(self):
         class Options():
-            inline_quotes = '\''
+            inline_quotes = "'"
             avoid_escape = 'false'
         QuoteChecker.parse_options(Options)
 
