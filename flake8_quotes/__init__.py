@@ -113,10 +113,12 @@ class QuoteChecker(object):
                           parse_from_config=True, type='choice',
                           choices=sorted(cls.DOCSTRING_QUOTES.keys()),
                           help='Quote to expect in all files (default: """)')
-        cls._register_opt(parser, '--avoid-escape', default=None, action='store',
-                          parse_from_config=True, type='choice',
-                          choices=['true','false'],
-                          help='Avoid escapes in inline strings (allowed: "true", "false",  default: "true")')
+        cls._register_opt(parser, '--avoid-escape', default=None, action='store_true',
+                          parse_from_config=True,
+                          help='Avoiding escaping same quotes in inline strings (enabled by default)')
+        cls._register_opt(parser, '--no-avoid-escape', dest='avoid_escape', default=None, action='store_false',
+                          parse_from_config=False,
+                          help='Disable avoiding escaping same quotes in inline strings')
 
     @classmethod
     def parse_options(cls, options):
@@ -126,7 +128,6 @@ class QuoteChecker(object):
         cls.config.update(cls.INLINE_QUOTES['\''])
         cls.config.update(cls.MULTILINE_QUOTES['"""'])
         cls.config.update(cls.DOCSTRING_QUOTES['"""'])
-        cls.config.update({'avoid_escape': True})
 
         # If `options.quotes` was specified, then use it
         if hasattr(options, 'quotes') and options.quotes is not None:
@@ -150,10 +151,11 @@ class QuoteChecker(object):
         if hasattr(options, 'docstring_quotes') and options.docstring_quotes is not None:
             cls.config.update(cls.DOCSTRING_QUOTES[options.docstring_quotes])
 
-        # If allow-escaped specified, add to config
+        # If avoid escaped specified, add to config
         if hasattr(options, 'avoid_escape') and options.avoid_escape is not None:
-            avoid_escape = {'true': True, 'false': False}[options.avoid_escape]
-            cls.config.update({'avoid_escape': avoid_escape})
+            cls.config.update({'avoid_escape': options.avoid_escape})
+        else:
+            cls.config.update({'avoid_escape': True})
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):

@@ -66,7 +66,7 @@ class DoublesTestChecks(TestCase):
     def test_escapes_allowed(self):
         class Options():
             inline_quotes = "'"
-            avoid_escape = 'false'
+            avoid_escape = False
         QuoteChecker.parse_options(Options)
 
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_escaped.py'))
@@ -133,7 +133,7 @@ class SinglesTestChecks(TestCase):
     def test_escapes_allowed(self):
         class Options():
             inline_quotes = '"'
-            avoid_escape = 'false'
+            avoid_escape = False
         QuoteChecker.parse_options(Options)
 
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_escaped.py'))
