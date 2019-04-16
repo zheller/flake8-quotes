@@ -238,12 +238,12 @@ class QuoteChecker(object):
                 #   'This is a string'       -> Good
                 #   'This is a "string"'     -> Good
                 #   'This is a \"string\"'   -> Good
-                #   'This is a \'string\''   -> Bad (Q004)  Escaped inner quotes
+                #   'This is a \'string\''   -> Bad (Q003)  Escaped inner quotes
                 #   '"This" is a \'string\'' -> Good        Changing outer quotes would not avoid escaping
                 #   "This is a string"       -> Bad (Q000)
                 #   "This is a 'string'"     -> Good        Avoids escaped inner quotes
                 #   "This is a \"string\""   -> Bad (Q000)
-                #   "\"This\" is a 'string'" -> Bad (Q000)
+                #   "\"This\" is a 'string'" -> Good
                 
                 string_contents = unprefixed_string[1:-1]
                 
