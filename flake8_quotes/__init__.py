@@ -260,7 +260,7 @@ class QuoteChecker(object):
                     continue
                 
                 # If not preferred type, only allow use to avoid escapes.
-                if not self.config['good_single'] in string_contents or self.config['bad_single'] in string_contents:
+                if not self.config['good_single'] in string_contents:
                     yield {
                         'message': 'Q000 Remove bad quotes',
                         'line': start_row,

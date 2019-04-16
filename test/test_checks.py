@@ -60,7 +60,6 @@ class DoublesTestChecks(TestCase):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_escaped.py'))
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
             {'col': 25, 'line': 1, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
-            {'col': 25, 'line': 4, 'message': 'Q000 Remove bad quotes'},
         ])
 
     def test_escapes_allowed(self):
@@ -70,9 +69,7 @@ class DoublesTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_escaped.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 25, 'line': 4, 'message': 'Q000 Remove bad quotes'},
-        ])
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
 
 
 class DoublesAliasTestChecks(TestCase):
@@ -127,7 +124,6 @@ class SinglesTestChecks(TestCase):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_escaped.py'))
         self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
             {'col': 25, 'line': 1, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
-            {'col': 25, 'line': 4, 'message': 'Q000 Remove bad quotes'},
         ])
 
     def test_escapes_allowed(self):
@@ -137,9 +133,7 @@ class SinglesTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_escaped.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 25, 'line': 4, 'message': 'Q000 Remove bad quotes'},
-        ])
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
 
 
 class SinglesAliasTestChecks(TestCase):
