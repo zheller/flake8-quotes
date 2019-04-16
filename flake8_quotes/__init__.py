@@ -113,6 +113,12 @@ class QuoteChecker(object):
                           parse_from_config=True, type='choice',
                           choices=sorted(cls.DOCSTRING_QUOTES.keys()),
                           help='Quote to expect in all files (default: """)')
+        cls._register_opt(parser, '--avoid-escape', default=None, action='store_true',
+                          parse_from_config=True,
+                          help='Avoiding escaping same quotes in inline strings (enabled by default)')
+        cls._register_opt(parser, '--no-avoid-escape', dest='avoid_escape', default=None, action='store_false',
+                          parse_from_config=False,
+                          help='Disable avoiding escaping same quotes in inline strings')
 
     @classmethod
     def parse_options(cls, options):
@@ -144,6 +150,12 @@ class QuoteChecker(object):
         # If docstring quotes was specified, overload our config with those options
         if hasattr(options, 'docstring_quotes') and options.docstring_quotes is not None:
             cls.config.update(cls.DOCSTRING_QUOTES[options.docstring_quotes])
+
+        # If avoid escaped specified, add to config
+        if hasattr(options, 'avoid_escape') and options.avoid_escape is not None:
+            cls.config.update({'avoid_escape': options.avoid_escape})
+        else:
+            cls.config.update({'avoid_escape': True})
 
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
@@ -223,19 +235,38 @@ class QuoteChecker(object):
                 }
             # Otherwise (string is inline quote)
             else:
-                # If our string is a known good string, then ignore it
-                #   (')foo' -> good (continue)
-                #   "it(')s" -> good (continue)
-                #   (")foo" -> possibly bad
-                if self.config['good_single'] in unprefixed_string:
+                #   'This is a string'       -> Good
+                #   'This is a "string"'     -> Good
+                #   'This is a \"string\"'   -> Good
+                #   'This is a \'string\''   -> Bad (Q003)  Escaped inner quotes
+                #   '"This" is a \'string\'' -> Good        Changing outer quotes would not avoid escaping
+                #   "This is a string"       -> Bad (Q000)
+                #   "This is a 'string'"     -> Good        Avoids escaped inner quotes
+                #   "This is a \"string\""   -> Bad (Q000)
+                #   "\"This\" is a 'string'" -> Good
+                
+                string_contents = unprefixed_string[1:-1]
+                
+                # If string preferred type, check for escapes
+                if last_quote_char == self.config['good_single']:
+                    if not self.config['avoid_escape']:
+                        continue
+                    if self.config['good_single'] in string_contents and not self.config['bad_single'] in string_contents:
+                        yield {
+                            'message': 'Q003 Change outer quotes to avoid escaping inner quotes',
+                            'line': start_row,
+                            'col': start_col,
+                        }
                     continue
-
-                # Output our error
-                yield {
-                    'message': 'Q000 Remove bad quotes',
-                    'line': start_row,
-                    'col': start_col,
-                }
+                
+                # If not preferred type, only allow use to avoid escapes.
+                if not self.config['good_single'] in string_contents:
+                    yield {
+                        'message': 'Q000 Remove bad quotes',
+                        'line': start_row,
+                        'col': start_col,
+                    }
+        
 
 
 class Token:

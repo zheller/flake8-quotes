@@ -30,8 +30,8 @@ class TestFlake8Stdin(TestCase):
 class DoublesTestChecks(TestCase):
     def setUp(self):
         class DoublesOptions():
-            inline_quotes = '\''
-            multiline_quotes = '\''
+            inline_quotes = "'"
+            multiline_quotes = "'"
         QuoteChecker.parse_options(DoublesOptions)
 
     def test_multiline_string(self):
@@ -55,6 +55,21 @@ class DoublesTestChecks(TestCase):
     def test_noqa_doubles(self):
         checker = QuoteChecker(None, get_absolute_path('data/doubles_noqa.py'))
         self.assertEqual(list(checker.run()), [])
+
+    def test_escapes(self):
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_escaped.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
+            {'col': 25, 'line': 1, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
+        ])
+
+    def test_escapes_allowed(self):
+        class Options():
+            inline_quotes = "'"
+            avoid_escape = False
+        QuoteChecker.parse_options(Options)
+
+        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_escaped.py'))
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
 
 
 class DoublesAliasTestChecks(TestCase):
@@ -105,6 +120,21 @@ class SinglesTestChecks(TestCase):
         checker = QuoteChecker(None, get_absolute_path('data/singles_noqa.py'))
         self.assertEqual(list(checker.run()), [])
 
+    def test_escapes(self):
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_escaped.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
+            {'col': 25, 'line': 1, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
+        ])
+
+    def test_escapes_allowed(self):
+        class Options():
+            inline_quotes = '"'
+            avoid_escape = False
+        QuoteChecker.parse_options(Options)
+
+        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_escaped.py'))
+        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+
 
 class SinglesAliasTestChecks(TestCase):
     def setUp(self):
@@ -128,7 +158,7 @@ class SinglesAliasTestChecks(TestCase):
 class MultilineTestChecks(TestCase):
     def test_singles(self):
         class Options():
-            inline_quotes = '\''
+            inline_quotes = "'"
             multiline_quotes = '"'
         QuoteChecker.parse_options(Options)
 
@@ -151,7 +181,7 @@ class MultilineTestChecks(TestCase):
     def test_doubles(self):
         class Options():
             inline_quotes = '"'
-            multiline_quotes = '\''
+            multiline_quotes = "'"
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
