@@ -5,6 +5,10 @@ Flake8 Extension to lint for quotes.
    :target: https://travis-ci.org/zheller/flake8-quotes
    :alt: Build Status
 
+Major update in 2.0.0
+---------------------
+We automatically encourage avoiding escaping quotes as per `PEP 8 <https://www.python.org/dev/peps/pep-0008/#string-quotes>`_. To disable this, use ``--no-avoid-escape`` (can be used in configuration file via ``avoid-escape``).
+
 Deprecation notice in 0.3.0
 ---------------------------
 To anticipate multiline support, we are renaming ``--quotes`` to ``--inline-quotes``. Please adjust your configurations appropriately.
@@ -52,6 +56,8 @@ By default, we expect single quotes (') and look for unwanted double quotes (").
     # flake8 --inline-quotes '"' --docstring-quotes "'"
     # flake8 --inline-quotes '"' --docstring-quotes "'''"
 
+    # We also support disabling escaping quotes
+    # flake8 --no-avoid-escape
 
 or configuration option in `tox.ini`/`setup.cfg`.
 
@@ -69,6 +75,9 @@ or configuration option in `tox.ini`/`setup.cfg`.
     # We also support docstring quotes similarly
     # docstring-quotes = '
     # docstring-quotes = '''
+    #
+    # We also support disabling escaping quotes
+    # avoid-escape = False
 
 Caveats
 -------
