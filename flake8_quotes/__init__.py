@@ -197,6 +197,7 @@ class QuoteChecker(object):
             #   `b"""foo"""` -> `"""foo"""`
             last_quote_char = token.string[-1]
             first_quote_index = token.string.index(last_quote_char)
+            prefix = token.string[:first_quote_index].lower()
             unprefixed_string = token.string[first_quote_index:]
 
             # Determine if our string is multiline-based
@@ -249,7 +250,7 @@ class QuoteChecker(object):
                 
                 # If string preferred type, check for escapes
                 if last_quote_char == self.config['good_single']:
-                    if not self.config['avoid_escape']:
+                    if not self.config['avoid_escape'] or 'r' in prefix:
                         continue
                     if self.config['good_single'] in string_contents and not self.config['bad_single'] in string_contents:
                         yield {
