@@ -28,13 +28,24 @@ complaining that you are using double-quotes and not single-quotes.
 Warnings
 --------
 
-This package adds one flake8 warning ```Q0```.
-You might want to enable this warning inside `flake8` configuration file.
-Typically that will be `.flake8` inside the root folder of your project.
+This package adds flake8 warnings with the prefix ``Q0``. You might want to
+enable this warning inside your flake8 configuration file. Typically that
+will be ``.flake8`` inside the root folder of your project.
 
 .. code:: ini
 
     select = Q0
+
+The current set of warnings is:
+
+==== =========================================================================
+Code Description
+---- -------------------------------------------------------------------------
+Q000 Remove bad quotes
+Q001 Remove bad quotes from multiline string
+Q002 Remove bad quotes from docstring
+Q003 Change outer quotes to avoid escaping inner quotes
+==== =========================================================================
 
 Configuration
 -------------
