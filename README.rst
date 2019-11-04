@@ -74,6 +74,7 @@ or configuration option in `tox.ini`/`setup.cfg`.
 
 .. code:: ini
 
+    [flake8]
     inline-quotes = "
     # We also support "double" and "single"
     # inline-quotes = double
