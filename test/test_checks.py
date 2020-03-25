@@ -40,6 +40,14 @@ class DoublesTestChecks(TestCase):
             {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
+    def test_multiline_string_using_lines(self):
+        with open(get_absolute_path('data/doubles_multiline_string.py')) as f:
+            lines = f.readlines()
+        doubles_checker = QuoteChecker(None, lines=lines)
+        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
+            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        ])
+
     def test_wrapped(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_wrapped.py'))
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
