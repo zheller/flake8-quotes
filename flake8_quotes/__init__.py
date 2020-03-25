@@ -71,8 +71,9 @@ class QuoteChecker(object):
     DOCSTRING_QUOTES['\'\'\''] = DOCSTRING_QUOTES['\'']
     DOCSTRING_QUOTES['"""'] = DOCSTRING_QUOTES['"']
 
-    def __init__(self, tree, filename='(none)'):
+    def __init__(self, tree, lines=None, filename='(none)'):
         self.filename = filename
+        self.lines = lines
 
     @staticmethod
     def _register_opt(parser, *args, **kwargs):
@@ -161,7 +162,10 @@ class QuoteChecker(object):
         if self.filename in ('stdin', '-', None):
             return stdin_get_value().splitlines(True)
         else:
-            return readlines(self.filename)
+            if self.lines:
+                return self.lines
+            else:
+                return readlines(self.filename)
 
     def run(self):
         file_contents = self.get_file_contents()
