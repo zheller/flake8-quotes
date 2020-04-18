@@ -42,10 +42,12 @@ class QuoteChecker(object):
     MULTILINE_QUOTES = {
         '\'': {
             'good_multiline': '\'\'\'',
+            'good_multiline_ending': '\'"""',
             'bad_multiline': '"""',
         },
         '"': {
             'good_multiline': '"""',
+            'good_multiline_ending': '"\'\'\'',
             'bad_multiline': '\'\'\'',
         },
     }
@@ -230,6 +232,12 @@ class QuoteChecker(object):
                 #   '''foo(""")''' -> good (continue)
                 #   (''')foo''' -> possibly bad
                 if self.config['good_multiline'] in unprefixed_string:
+                    continue
+
+                # If our string ends with a known good ending, then ignore it
+                #   '''foo("''') -> good (continue)
+                #     Opposite, """foo"""", would break our parser (cannot handle """" ending)
+                if unprefixed_string.endswith(self.config['good_multiline_ending']):
                     continue
 
                 # Output our error
