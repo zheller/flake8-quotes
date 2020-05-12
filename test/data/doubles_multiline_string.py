@@ -1,7 +1,9 @@
 s = """ This "should"
-"not" be
+be
 "linted" """
 
 s = ''' This "should"
 "not" be
-linted "either" '''
+"linted" '''
+
+s = """'This should not be linted due to having would-be quadruple end quote'"""
