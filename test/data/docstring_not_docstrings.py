@@ -38,3 +38,7 @@ if var0 < 10:
 # https://github.com/zheller/flake8-quotes/issues/97
 def test():
     {}["a"]
+
+
+class test:
+    {}["a"]
