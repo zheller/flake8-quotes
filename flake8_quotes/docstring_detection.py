@@ -63,8 +63,14 @@ def get_docstring_tokens(tokens):
         # Count opening and closing brackets in bracket_count
         elif token.type == tokenize.OP and token.string in ['(', '[', '{']:
             bracket_count += 1
+            if state in [STATE_EXPECT_MODULE_DOCSTRING, STATE_EXPECT_CLASS_DOCSTRING,
+                         STATE_EXPECT_FUNCTION_DOCSTRING]:
+                state = STATE_OTHER
         elif token.type == tokenize.OP and token.string in [')', ']', '}']:
             bracket_count -= 1
+            if state in [STATE_EXPECT_MODULE_DOCSTRING, STATE_EXPECT_CLASS_DOCSTRING,
+                         STATE_EXPECT_FUNCTION_DOCSTRING]:
+                state = STATE_OTHER
         # The token is not one of the recognized types. If we're expecting a colon, then all good,
         # but if we're expecting a docstring, it would no longer be a docstring
         elif state in [STATE_EXPECT_MODULE_DOCSTRING, STATE_EXPECT_CLASS_DOCSTRING,
