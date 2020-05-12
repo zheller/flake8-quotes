@@ -34,3 +34,11 @@ if var0 < 10:
         not a multiline docstring
     '''
     pass
+
+# https://github.com/zheller/flake8-quotes/issues/97
+def test():
+    {}["a"]
+
+
+class test:
+    {}["a"]
