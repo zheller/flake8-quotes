@@ -1,8 +1,5 @@
 import tokenize
 import warnings
-from typing import Any, Dict, Iterator, List, Set, Tuple
-
-from flake8.options.manager import OptionManager
 
 from flake8_quotes.__about__ import __version__
 from flake8_quotes.docstring_detection import get_docstring_tokens
@@ -11,10 +8,6 @@ from flake8_quotes.docstring_detection import get_docstring_tokens
 class QuoteChecker:
     name = __name__
     version = __version__
-    line = ''  # type: str
-    tokens = []  # type: List[tokenize.TokenInfo]
-    docstring_tokens = set()  # type: Set[tokenize.TokenInfo]
-    config = {}  # type: Dict[str, Any]
 
     INLINE_QUOTES = {
         # When user wants only single quotes
@@ -68,7 +61,7 @@ class QuoteChecker:
     DOCSTRING_QUOTES['"""'] = DOCSTRING_QUOTES['"']
 
     @classmethod
-    def add_options(cls, option_manager: OptionManager) -> None:
+    def add_options(cls, option_manager):
         option_manager.add_option('--quotes', action='store',
                                   parse_from_config=True, type='choice',
                                   choices=sorted(cls.INLINE_QUOTES.keys()),
@@ -96,6 +89,7 @@ class QuoteChecker:
     def parse_options(cls, options):
         # Define our default config
         # cls.config = {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
+        cls.config = {}
         cls.config.update(cls.INLINE_QUOTES["'"])
         cls.config.update(cls.MULTILINE_QUOTES['"""'])
         cls.config.update(cls.DOCSTRING_QUOTES['"""'])
@@ -128,13 +122,13 @@ class QuoteChecker:
         else:
             cls.config.update({'avoid_escape': True})
 
-    def __init__(self, logical_line: str, previous_logical: str, tokens: List[tokenize.TokenInfo]) -> None:
+    def __init__(self, logical_line, previous_logical, tokens):
         self.line = logical_line
         self.tokens = tokens
         prev_tokens = tokenize.tokenize(lambda L=iter([previous_logical.encode('utf-8')]): next(L))
         self.docstring_tokens = get_docstring_tokens(prev_tokens, self.tokens)
 
-    def __iter__(self) -> Iterator[Tuple[Tuple[int, int], str]]:
+    def __iter__(self):
         for token in self.tokens:
             if token.type != tokenize.STRING:
                 # ignore non strings
