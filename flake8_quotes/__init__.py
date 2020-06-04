@@ -1,6 +1,6 @@
 import tokenize
 import warnings
-from typing import Iterator, List, Set, Tuple
+from typing import Any, Dict, Iterator, List, Set, Tuple
 
 from flake8.options.manager import OptionManager
 
@@ -11,9 +11,10 @@ from flake8_quotes.docstring_detection import get_docstring_tokens
 class QuoteChecker:
     name = __name__
     version = __version__
-    line: str
-    tokens: List[tokenize.TokenInfo]
-    docstring_tokens: Set[tokenize.TokenInfo]
+    line = ''  # type: str
+    tokens = []  # type: List[tokenize.TokenInfo]
+    docstring_tokens = set()  # type: Set[tokenize.TokenInfo]
+    config = {}  # type: Dict[str, Any]
 
     INLINE_QUOTES = {
         # When user wants only single quotes
@@ -95,7 +96,6 @@ class QuoteChecker:
     def parse_options(cls, options):
         # Define our default config
         # cls.config = {good_single: ', good_multiline: ''', bad_single: ", bad_multiline: """}
-        cls.config = {}
         cls.config.update(cls.INLINE_QUOTES["'"])
         cls.config.update(cls.MULTILINE_QUOTES['"""'])
         cls.config.update(cls.DOCSTRING_QUOTES['"""'])
