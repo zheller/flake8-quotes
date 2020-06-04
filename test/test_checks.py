@@ -1,13 +1,24 @@
-from flake8_quotes import QuoteChecker
 import os
+import re
 import subprocess
 from unittest import TestCase
 
+OUTPUT_REGEX = re.compile(r'.*?:([\d]+):([\d]+): (.*)')
 
-class TestChecks(TestCase):
-    def test_get_noqa_lines(self):
-        checker = QuoteChecker(None, filename=get_absolute_path('data/no_qa.py'))
-        self.assertEqual(checker.get_noqa_lines(checker.get_file_contents()), [2])
+
+def run_flake8(path, options):
+    p = subprocess.Popen(['flake8', '--select=Q', path] + options,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    if (stderr):
+        return [{'col': 0, 'line': 0, 'message': stderr.decode('ascii')}]
+    stdout_lines = stdout.splitlines()
+    result = []
+    for line in stdout_lines:
+        match = OUTPUT_REGEX.match(line.decode('ascii'))
+        if (match):
+            result.append({'line': int(match.group(1)), 'col': int(match.group(2)), 'message': match.group(3)})
+    return result
 
 
 class TestFlake8Stdin(TestCase):
@@ -22,190 +33,147 @@ class TestFlake8Stdin(TestCase):
         stdout_lines = stdout.splitlines()
         self.assertEqual(stderr, b'')
         self.assertEqual(len(stdout_lines), 3)
-        self.assertRegexpMatches(stdout_lines[0], b'stdin:1:(24|25): Q000 Remove bad quotes')
-        self.assertRegexpMatches(stdout_lines[1], b'stdin:2:(24|25): Q000 Remove bad quotes')
-        self.assertRegexpMatches(stdout_lines[2], b'stdin:3:(24|25): Q000 Remove bad quotes')
+        self.assertRegex(stdout_lines[0], b'stdin:1:(24|25): Q000 Remove bad quotes')
+        self.assertRegex(stdout_lines[1], b'stdin:2:(24|25): Q000 Remove bad quotes')
+        self.assertRegex(stdout_lines[2], b'stdin:3:(24|25): Q000 Remove bad quotes')
 
 
 class DoublesTestChecks(TestCase):
-    def setUp(self):
-        class DoublesOptions():
-            inline_quotes = "'"
-            multiline_quotes = "'"
-        QuoteChecker.parse_options(DoublesOptions)
+    options = ["--inline-quotes='", "--multiline-quotes='"]
 
     def test_multiline_string(self):
-        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_multiline_string.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
-        ])
-
-    def test_multiline_string_using_lines(self):
-        with open(get_absolute_path('data/doubles_multiline_string.py')) as f:
-            lines = f.readlines()
-        doubles_checker = QuoteChecker(None, lines=lines)
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        result = run_flake8(get_absolute_path('data/doubles_multiline_string.py'), self.options)
+        self.assertEqual(result, [
+            {'col': 5, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
     def test_wrapped(self):
-        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_wrapped.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
+        result = run_flake8(get_absolute_path('data/doubles_wrapped.py'), self.options)
+        self.assertEqual(result, [])
 
     def test_doubles(self):
-        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes'},
+        result = run_flake8(get_absolute_path('data/doubles.py'), self.options)
+        self.assertEqual(result, [
+            {'col': 25, 'line': 1, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 2, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 3, 'message': 'Q000 Remove bad quotes'},
         ])
 
     def test_noqa_doubles(self):
-        checker = QuoteChecker(None, get_absolute_path('data/doubles_noqa.py'))
-        self.assertEqual(list(checker.run()), [])
+        result = run_flake8(get_absolute_path('data/doubles_noqa.py'), self.options)
+        self.assertEqual(result, [])
 
     def test_escapes(self):
-        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_escaped.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 25, 'line': 1, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
+        result = run_flake8(get_absolute_path('data/doubles_escaped.py'), self.options)
+        self.assertEqual(result, [
+            {'col': 26, 'line': 1, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
         ])
 
     def test_escapes_allowed(self):
-        class Options():
-            inline_quotes = "'"
-            avoid_escape = False
-        QuoteChecker.parse_options(Options)
-
-        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_escaped.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
+        options = ["--inline-quotes='", '--no-avoid-escape']
+        result = run_flake8(get_absolute_path('data/doubles_escaped.py'), options)
+        self.assertEqual(result, [])
 
 
 class DoublesAliasTestChecks(TestCase):
-    def setUp(self):
-        class DoublesAliasOptions():
-            inline_quotes = 'single'
-            multiline_quotes = 'single'
-        QuoteChecker.parse_options(DoublesAliasOptions)
+    options = ['--inline-quotes=single', '--multiline-quotes=single']
 
     def test_doubles(self):
-        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_wrapped.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
+        result = run_flake8(get_absolute_path('data/doubles_wrapped.py'), self.options)
+        self.assertEqual(result, [])
 
-        doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles.py'))
-        self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes'},
+        result = run_flake8(get_absolute_path('data/doubles.py'), self.options)
+        self.assertEqual(result, [
+            {'col': 25, 'line': 1, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 2, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 3, 'message': 'Q000 Remove bad quotes'},
         ])
 
 
 class SinglesTestChecks(TestCase):
-    def setUp(self):
-        class SinglesOptions():
-            inline_quotes = '"'
-            multiline_quotes = '"'
-        QuoteChecker.parse_options(SinglesOptions)
+    options = ['--inline-quotes="', '--multiline-quotes="']
 
     def test_multiline_string(self):
-        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_multiline_string.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        result = run_flake8(get_absolute_path('data/singles_multiline_string.py'), self.options)
+        self.assertEqual(result, [
+            {'col': 5, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
     def test_wrapped(self):
-        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_wrapped.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+        result = run_flake8(get_absolute_path('data/singles_wrapped.py'), self.options)
+        self.assertEqual(result, [])
 
     def test_singles(self):
-        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes'},
+        result = run_flake8(get_absolute_path('data/singles.py'), self.options)
+        self.assertEqual(result, [
+            {'col': 25, 'line': 1, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 2, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 3, 'message': 'Q000 Remove bad quotes'},
         ])
 
     def test_noqa_singles(self):
-        checker = QuoteChecker(None, get_absolute_path('data/singles_noqa.py'))
-        self.assertEqual(list(checker.run()), [])
+        result = run_flake8(get_absolute_path('data/singles_noqa.py'), self.options)
+        self.assertEqual(result, [])
 
     def test_escapes(self):
-        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_escaped.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 25, 'line': 1, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
+        result = run_flake8(get_absolute_path('data/singles_escaped.py'), self.options)
+        self.assertEqual(result, [
+            {'col': 26, 'line': 1, 'message': 'Q003 Change outer quotes to avoid escaping inner quotes'},
         ])
 
     def test_escapes_allowed(self):
-        class Options():
-            inline_quotes = '"'
-            avoid_escape = False
-        QuoteChecker.parse_options(Options)
+        options = ['--inline-quotes="', '--no-avoid-escape']
 
-        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_escaped.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+        result = run_flake8(get_absolute_path('data/singles_escaped.py'), options)
+        self.assertEqual(result, [])
 
 
 class SinglesAliasTestChecks(TestCase):
-    def setUp(self):
-        class SinglesAliasOptions():
-            inline_quotes = 'double'
-            multiline_quotes = 'double'
-        QuoteChecker.parse_options(SinglesAliasOptions)
+    options = ['--inline-quotes=double', '--multiline-quotes=double']
 
     def test_singles(self):
-        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_wrapped.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
+        result = run_flake8(get_absolute_path('data/singles_wrapped.py'), self.options)
+        self.assertEqual(result, [])
 
-        singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles.py'))
-        self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 2, 'message': 'Q000 Remove bad quotes'},
-            {'col': 24, 'line': 3, 'message': 'Q000 Remove bad quotes'},
+        result = run_flake8(get_absolute_path('data/singles.py'), self.options)
+        self.assertEqual(result, [
+            {'col': 25, 'line': 1, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 2, 'message': 'Q000 Remove bad quotes'},
+            {'col': 25, 'line': 3, 'message': 'Q000 Remove bad quotes'},
         ])
 
 
 class MultilineTestChecks(TestCase):
     def test_singles(self):
-        class Options():
-            inline_quotes = "'"
-            multiline_quotes = '"'
-        QuoteChecker.parse_options(Options)
+        options = ["--inline-quotes='", '--multiline-quotes="']
 
-        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
-        self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 4, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string'},
+        result = run_flake8(get_absolute_path('data/multiline_string.py'), options)
+        self.assertEqual(result, [
+            {'col': 5, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
     def test_singles_alias(self):
-        class Options():
-            inline_quotes = 'single'
-            multiline_quotes = 'double'
-        QuoteChecker.parse_options(Options)
+        options = ['--inline-quotes=single', '--multiline-quotes=double']
 
-        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
-        self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 4, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string'},
+        result = run_flake8(get_absolute_path('data/multiline_string.py'), options)
+        self.assertEqual(result, [
+            {'col': 5, 'line': 10, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
     def test_doubles(self):
-        class Options():
-            inline_quotes = '"'
-            multiline_quotes = "'"
-        QuoteChecker.parse_options(Options)
+        options = ['--inline-quotes="', "--multiline-quotes='"]
 
-        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
-        self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        result = run_flake8(get_absolute_path('data/multiline_string.py'), options)
+        self.assertEqual(result, [
+            {'col': 5, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
     def test_doubles_alias(self):
-        class Options():
-            inline_quotes = 'double'
-            multiline_quotes = 'single'
-        QuoteChecker.parse_options(Options)
+        options = ['--inline-quotes=double', '--multiline-quotes=single']
 
-        multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
-        self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
+        result = run_flake8(get_absolute_path('data/multiline_string.py'), options)
+        self.assertEqual(result, [
+            {'col': 5, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
         ])
 
 

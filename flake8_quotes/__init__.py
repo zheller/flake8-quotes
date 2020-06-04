@@ -1,26 +1,19 @@
-import optparse
 import tokenize
 import warnings
+from typing import Iterator, List, Set, Tuple
 
-# Polyfill stdin loading/reading lines
-# https://gitlab.com/pycqa/flake8-polyfill/blob/1.0.1/src/flake8_polyfill/stdin.py#L52-57
-try:
-    from flake8.engine import pep8
-    stdin_get_value = pep8.stdin_get_value
-    readlines = pep8.readlines
-except ImportError:
-    from flake8 import utils
-    import pycodestyle
-    stdin_get_value = utils.stdin_get_value
-    readlines = pycodestyle.readlines
+from flake8.options.manager import OptionManager
 
 from flake8_quotes.__about__ import __version__
 from flake8_quotes.docstring_detection import get_docstring_tokens
 
 
-class QuoteChecker(object):
+class QuoteChecker:
     name = __name__
     version = __version__
+    line: str
+    tokens: List[tokenize.TokenInfo]
+    docstring_tokens: Set[tokenize.TokenInfo]
 
     INLINE_QUOTES = {
         # When user wants only single quotes
@@ -73,55 +66,30 @@ class QuoteChecker(object):
     DOCSTRING_QUOTES["'''"] = DOCSTRING_QUOTES["'"]
     DOCSTRING_QUOTES['"""'] = DOCSTRING_QUOTES['"']
 
-    def __init__(self, tree, lines=None, filename='(none)'):
-        self.filename = filename
-        self.lines = lines
-
-    @staticmethod
-    def _register_opt(parser, *args, **kwargs):
-        """
-        Handler to register an option for both Flake8 3.x and 2.x.
-
-        This is based on:
-        https://github.com/PyCQA/flake8/blob/3.0.0b2/docs/source/plugin-development/cross-compatibility.rst#option-handling-on-flake8-2-and-3
-
-        It only supports `parse_from_config` from the original function and it
-        uses the `Option` object returned to get the string.
-        """
-        try:
-            # Flake8 3.x registration
-            parser.add_option(*args, **kwargs)
-        except (optparse.OptionError, TypeError):
-            # Flake8 2.x registration
-            parse_from_config = kwargs.pop('parse_from_config', False)
-            option = parser.add_option(*args, **kwargs)
-            if parse_from_config:
-                parser.config_options.append(option.get_opt_string().lstrip('-'))
-
     @classmethod
-    def add_options(cls, parser):
-        cls._register_opt(parser, '--quotes', action='store',
-                          parse_from_config=True, type='choice',
-                          choices=sorted(cls.INLINE_QUOTES.keys()),
-                          help='Deprecated alias for `--inline-quotes`')
-        cls._register_opt(parser, '--inline-quotes', default="'",
-                          action='store', parse_from_config=True, type='choice',
-                          choices=sorted(cls.INLINE_QUOTES.keys()),
-                          help="Quote to expect in all files (default: ')")
-        cls._register_opt(parser, '--multiline-quotes', default=None, action='store',
-                          parse_from_config=True, type='choice',
-                          choices=sorted(cls.MULTILINE_QUOTES.keys()),
-                          help='Quote to expect in all files (default: """)')
-        cls._register_opt(parser, '--docstring-quotes', default=None, action='store',
-                          parse_from_config=True, type='choice',
-                          choices=sorted(cls.DOCSTRING_QUOTES.keys()),
-                          help='Quote to expect in all files (default: """)')
-        cls._register_opt(parser, '--avoid-escape', default=None, action='store_true',
-                          parse_from_config=True,
-                          help='Avoiding escaping same quotes in inline strings (enabled by default)')
-        cls._register_opt(parser, '--no-avoid-escape', dest='avoid_escape', default=None, action='store_false',
-                          parse_from_config=False,
-                          help='Disable avoiding escaping same quotes in inline strings')
+    def add_options(cls, option_manager: OptionManager) -> None:
+        option_manager.add_option('--quotes', action='store',
+                                  parse_from_config=True, type='choice',
+                                  choices=sorted(cls.INLINE_QUOTES.keys()),
+                                  help='Deprecated alias for `--inline-quotes`')
+        option_manager.add_option('--inline-quotes', default="'",
+                                  action='store', parse_from_config=True, type='choice',
+                                  choices=sorted(cls.INLINE_QUOTES.keys()),
+                                  help="Quote to expect in all files (default: ')")
+        option_manager.add_option('--multiline-quotes', default=None, action='store',
+                                  parse_from_config=True, type='choice',
+                                  choices=sorted(cls.MULTILINE_QUOTES.keys()),
+                                  help='Quote to expect in all files (default: """)')
+        option_manager.add_option('--docstring-quotes', default=None, action='store',
+                                  parse_from_config=True, type='choice',
+                                  choices=sorted(cls.DOCSTRING_QUOTES.keys()),
+                                  help='Quote to expect in all files (default: """)')
+        option_manager.add_option('--avoid-escape', default=None, action='store_true',
+                                  parse_from_config=True,
+                                  help='Avoiding escaping same quotes in inline strings (enabled by default)')
+        option_manager.add_option('--no-avoid-escape', dest='avoid_escape', default=None, action='store_false',
+                                  parse_from_config=False,
+                                  help='Disable avoiding escaping same quotes in inline strings')
 
     @classmethod
     def parse_options(cls, options):
@@ -160,37 +128,14 @@ class QuoteChecker(object):
         else:
             cls.config.update({'avoid_escape': True})
 
-    def get_file_contents(self):
-        if self.filename in ('stdin', '-', None):
-            return stdin_get_value().splitlines(True)
-        else:
-            if self.lines:
-                return self.lines
-            else:
-                return readlines(self.filename)
+    def __init__(self, logical_line: str, previous_logical: str, tokens: List[tokenize.TokenInfo]) -> None:
+        self.line = logical_line
+        self.tokens = tokens
+        prev_tokens = tokenize.tokenize(lambda L=iter([previous_logical.encode('utf-8')]): next(L))
+        self.docstring_tokens = get_docstring_tokens(prev_tokens, self.tokens)
 
-    def run(self):
-        file_contents = self.get_file_contents()
-
-        noqa_line_numbers = self.get_noqa_lines(file_contents)
-        errors = self.get_quotes_errors(file_contents)
-
-        for error in errors:
-            if error.get('line') not in noqa_line_numbers:
-                yield (error.get('line'), error.get('col'), error.get('message'), type(self))
-
-    def get_noqa_lines(self, file_contents):
-        tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
-        return [token.start_row
-                for token in tokens
-                if token.type == tokenize.COMMENT and token.string.endswith('noqa')]
-
-    def get_quotes_errors(self, file_contents):
-        tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
-        docstring_tokens = get_docstring_tokens(tokens)
-
-        for token in tokens:
-
+    def __iter__(self) -> Iterator[Tuple[Tuple[int, int], str]]:
+        for token in self.tokens:
             if token.type != tokenize.STRING:
                 # ignore non strings
                 continue
@@ -210,9 +155,8 @@ class QuoteChecker(object):
             #   "foo"[0] * 3 = " * 3 = """
             #   "foo"[0:3] = "fo
             #   """foo"""[0:3] = """
-            is_docstring = token in docstring_tokens
+            is_docstring = (token in self.docstring_tokens)
             is_multiline_string = unprefixed_string[0] * 3 == unprefixed_string[0:3]
-            start_row, start_col = token.start
 
             # If our string is a docstring
             # DEV: Docstring quotes must come before multiline quotes as it can as a multiline quote
@@ -220,11 +164,7 @@ class QuoteChecker(object):
                 if self.config['good_docstring'] in unprefixed_string:
                     continue
 
-                yield {
-                    'message': 'Q002 Remove bad quotes from docstring',
-                    'line': start_row,
-                    'col': start_col,
-                }
+                yield (token.start, 'Q002 Remove bad quotes from docstring')
             # Otherwise if our string is multiline
             elif is_multiline_string:
                 # If our string is or containing a known good string, then ignore it
@@ -241,11 +181,7 @@ class QuoteChecker(object):
                     continue
 
                 # Output our error
-                yield {
-                    'message': 'Q001 Remove bad quotes from multiline string',
-                    'line': start_row,
-                    'col': start_col,
-                }
+                yield (token.start, 'Q001 Remove bad quotes from multiline string')
             # Otherwise (string is inline quote)
             else:
                 #   'This is a string'       -> Good
@@ -266,43 +202,9 @@ class QuoteChecker(object):
                         continue
                     if (self.config['good_single'] in string_contents and
                             not self.config['bad_single'] in string_contents):
-                        yield {
-                            'message': 'Q003 Change outer quotes to avoid escaping inner quotes',
-                            'line': start_row,
-                            'col': start_col,
-                        }
+                        yield (token.start, 'Q003 Change outer quotes to avoid escaping inner quotes')
                     continue
 
                 # If not preferred type, only allow use to avoid escapes.
                 if not self.config['good_single'] in string_contents:
-                    yield {
-                        'message': 'Q000 Remove bad quotes',
-                        'line': start_row,
-                        'col': start_col,
-                    }
-
-
-class Token:
-    """Python 2 and 3 compatible token"""
-    def __init__(self, token):
-        self.token = token
-
-    @property
-    def type(self):
-        return self.token[0]
-
-    @property
-    def string(self):
-        return self.token[1]
-
-    @property
-    def start(self):
-        return self.token[2]
-
-    @property
-    def start_row(self):
-        return self.token[2][0]
-
-    @property
-    def start_col(self):
-        return self.token[2][1]
+                    yield (token.start, 'Q000 Remove bad quotes')

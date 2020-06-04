@@ -18,6 +18,7 @@ STATE_OTHER = 5
 
 # These tokens don't matter here - they don't get in the way of docstrings
 TOKENS_TO_IGNORE = [
+    tokenize.ENCODING,
     tokenize.NEWLINE,
     tokenize.INDENT,
     tokenize.DEDENT,
@@ -26,8 +27,14 @@ TOKENS_TO_IGNORE = [
 ]
 
 
-def get_docstring_tokens(tokens):
-    state = STATE_EXPECT_MODULE_DOCSTRING
+def get_docstring_tokens(prev_tokens, tokens):
+    for token in prev_tokens:
+        if token.type in TOKENS_TO_IGNORE:
+            continue
+        state = STATE_EXPECT_MODULE_DOCSTRING if (token.type != tokenize.STRING) else STATE_OTHER
+        break
+    else:
+        state = STATE_EXPECT_MODULE_DOCSTRING
     # The number of currently open parentheses, square brackets, etc.
     # This doesn't check if they're properly balanced, i.e. there isn't ([)], but we shouldn't
     # need to - if they aren't, it shouldn't parse at all, so we ignore the bracket type

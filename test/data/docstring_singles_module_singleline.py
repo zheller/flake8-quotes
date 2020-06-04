@@ -3,4 +3,4 @@
 
 def foo():
     pass
-''' this is not a docstring '''
+''' this is a non-standard docstring '''

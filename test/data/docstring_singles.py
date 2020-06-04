@@ -30,11 +30,11 @@ class Cls(MakeKlass('''
         some_expression = 'hello world'
 
         '''
-        this is not a docstring
+        this is a variable docstring
         '''
 
         if l:
             '''
-            Looks like a docstring, but in reality it isn't - only modules, classes and functions
+            this is a non-standard docstring
             '''
             pass
