@@ -125,7 +125,11 @@ class QuoteChecker:
     def __init__(self, logical_line, previous_logical, tokens):
         self.line = logical_line
         self.tokens = tokens
-        prev_tokens = tokenize.tokenize(lambda L=iter([previous_logical.encode('utf-8')]): next(L))
+
+        # Generate `readline()` matching interface for `tokenize.tokenize` and pass it in
+        #   https://docs.python.org/3/library/tokenize.html#tokenize.tokenize
+        previous_logical_readline_fn = (lambda L=iter([previous_logical.encode('utf-8')]): next(L))
+        prev_tokens = tokenize.tokenize(previous_logical_readline_fn)
         self.docstring_tokens = get_docstring_tokens(prev_tokens, self.tokens)
 
     def __iter__(self):
@@ -149,7 +153,7 @@ class QuoteChecker:
             #   "foo"[0] * 3 = " * 3 = """
             #   "foo"[0:3] = "fo
             #   """foo"""[0:3] = """
-            is_docstring = (token in self.docstring_tokens)
+            is_docstring = token in self.docstring_tokens
             is_multiline_string = unprefixed_string[0] * 3 == unprefixed_string[0:3]
 
             # If our string is a docstring
