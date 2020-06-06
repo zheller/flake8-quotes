@@ -26,6 +26,12 @@ class TestFlake8Stdin(TestCase):
         self.assertRegexpMatches(stdout_lines[1], b'stdin:2:(24|25): Q000 Remove bad quotes')
         self.assertRegexpMatches(stdout_lines[2], b'stdin:3:(24|25): Q000 Remove bad quotes')
 
+from flake8.checker import FileProcessor
+
+class EmptyOptions:
+    hang_closing = None
+    max_line_length = None
+    max_line_length = None
 
 class DoublesTestChecks(TestCase):
     def setUp(self):
@@ -35,6 +41,7 @@ class DoublesTestChecks(TestCase):
         QuoteChecker.parse_options(DoublesOptions)
 
     def test_multiline_string(self):
+        foo = FileProcessor(get_absolute_path('data/doubles_multiline_string.py'), EmptyOptions)
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_multiline_string.py'))
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
             {'col': 4, 'line': 1, 'message': 'Q001 Remove bad quotes from multiline string'},
