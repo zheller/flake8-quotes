@@ -73,6 +73,8 @@ class QuoteChecker(object):
     DOCSTRING_QUOTES["'''"] = DOCSTRING_QUOTES["'"]
     DOCSTRING_QUOTES['"""'] = DOCSTRING_QUOTES['"']
 
+    QUOTE_NAMES = {'"': 'double', "'": 'single'}
+
     def __init__(self, tree, lines=None, filename='(none)'):
         self.filename = filename
         self.lines = lines
@@ -221,7 +223,7 @@ class QuoteChecker(object):
                     continue
 
                 yield {
-                    'message': 'Q002 Remove bad quotes from docstring',
+                    'message': self._quote_error(code='Q002', kind='doc'),
                     'line': start_row,
                     'col': start_col,
                 }
@@ -242,7 +244,7 @@ class QuoteChecker(object):
 
                 # Output our error
                 yield {
-                    'message': 'Q001 Remove bad quotes from multiline string',
+                    'message': self._quote_error(code='Q001', kind='multiline '),
                     'line': start_row,
                     'col': start_col,
                 }
@@ -276,10 +278,15 @@ class QuoteChecker(object):
                 # If not preferred type, only allow use to avoid escapes.
                 if not self.config['good_single'] in string_contents:
                     yield {
-                        'message': 'Q000 Remove bad quotes',
+                        'message': self._quote_error(code='Q000', kind=''),
                         'line': start_row,
                         'col': start_col,
                     }
+
+    def _quote_error(self, code, kind):
+        bad = self.QUOTE_NAMES[self.config['bad_single']]
+        good = self.QUOTE_NAMES[self.config['good_single']]
+        return f'{code} {bad.title()} quoted {kind}string literal found but {good} quotes are preferred'
 
 
 class Token:
