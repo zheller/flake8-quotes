@@ -23,15 +23,15 @@ class TestFlake8Stdin(TestCase):
         self.assertEqual(stderr, b'')
         self.assertEqual(len(stdout_lines), 3)
         self.assertRegexpMatches(
-            stdout_lines[0], 
+            stdout_lines[0],
             b'stdin:1:(24|25): Q000 Double quoted string literal found but single quotes are preferred',
         )
         self.assertRegexpMatches(
-            stdout_lines[0], 
+            stdout_lines[0],
             b'stdin:2:(24|25): Q000 Double quoted string literal found but single quotes are preferred',
         )
         self.assertRegexpMatches(
-            stdout_lines[0], 
+            stdout_lines[0],
             b'stdin:3:(24|25): Q000 Double quoted string literal found but single quotes are preferred',
         )
 
