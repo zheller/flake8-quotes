@@ -24,16 +24,13 @@ class TestFlake8Stdin(TestCase):
         self.assertEqual(len(stdout_lines), 3)
         self.assertRegexpMatches(
             stdout_lines[0],
-            b'stdin:1:(24|25): Q000 Double quoted string literal found but single quotes are preferred',
-        )
+            b'stdin:1:(24|25): Q000 Double quotes found but single quotes preferred')
         self.assertRegexpMatches(
-            stdout_lines[0],
-            b'stdin:2:(24|25): Q000 Double quoted string literal found but single quotes are preferred',
-        )
+            stdout_lines[1],
+            b'stdin:2:(24|25): Q000 Double quotes found but single quotes preferred')
         self.assertRegexpMatches(
-            stdout_lines[0],
-            b'stdin:3:(24|25): Q000 Double quoted string literal found but single quotes are preferred',
-        )
+            stdout_lines[2],
+            b'stdin:3:(24|25): Q000 Double quotes found but single quotes preferred')
 
 
 class DoublesTestChecks(TestCase):
@@ -45,18 +42,16 @@ class DoublesTestChecks(TestCase):
 
     def test_multiline_string(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles_multiline_string.py'))
-        message = 'Q001 Double quoted multiline string literal found but single quotes are preferred'
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': message},
+            {'col': 4, 'line': 1, 'message': 'Q001 Double quote multiline found but single quotes preferred'},
         ])
 
     def test_multiline_string_using_lines(self):
         with open(get_absolute_path('data/doubles_multiline_string.py')) as f:
             lines = f.readlines()
         doubles_checker = QuoteChecker(None, lines=lines)
-        message = 'Q001 Double quoted multiline string literal found but single quotes are preferred'
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': message},
+            {'col': 4, 'line': 1, 'message': 'Q001 Double quote multiline found but single quotes preferred'},
         ])
 
     def test_wrapped(self):
@@ -65,11 +60,10 @@ class DoublesTestChecks(TestCase):
 
     def test_doubles(self):
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles.py'))
-        message = 'Q000 Double quoted string literal found but single quotes are preferred'
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': message},
-            {'col': 24, 'line': 2, 'message': message},
-            {'col': 24, 'line': 3, 'message': message},
+            {'col': 24, 'line': 1, 'message': 'Q000 Double quotes found but single quotes preferred'},
+            {'col': 24, 'line': 2, 'message': 'Q000 Double quotes found but single quotes preferred'},
+            {'col': 24, 'line': 3, 'message': 'Q000 Double quotes found but single quotes preferred'},
         ])
 
     def test_noqa_doubles(self):
@@ -104,11 +98,10 @@ class DoublesAliasTestChecks(TestCase):
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [])
 
         doubles_checker = QuoteChecker(None, filename=get_absolute_path('data/doubles.py'))
-        message = 'Q000 Double quoted string literal found but single quotes are preferred'
         self.assertEqual(list(doubles_checker.get_quotes_errors(doubles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': message},
-            {'col': 24, 'line': 2, 'message': message},
-            {'col': 24, 'line': 3, 'message': message},
+            {'col': 24, 'line': 1, 'message': 'Q000 Double quotes found but single quotes preferred'},
+            {'col': 24, 'line': 2, 'message': 'Q000 Double quotes found but single quotes preferred'},
+            {'col': 24, 'line': 3, 'message': 'Q000 Double quotes found but single quotes preferred'},
         ])
 
 
@@ -121,9 +114,8 @@ class SinglesTestChecks(TestCase):
 
     def test_multiline_string(self):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles_multiline_string.py'))
-        message = 'Q001 Single quoted multiline string literal found but double quotes are preferred'
         self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': message},
+            {'col': 4, 'line': 1, 'message': 'Q001 Single quote multiline found but double quotes preferred'},
         ])
 
     def test_wrapped(self):
@@ -132,11 +124,10 @@ class SinglesTestChecks(TestCase):
 
     def test_singles(self):
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles.py'))
-        message = 'Q000 Single quoted string literal found but double quotes are preferred'
         self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': message},
-            {'col': 24, 'line': 2, 'message': message},
-            {'col': 24, 'line': 3, 'message': message},
+            {'col': 24, 'line': 1, 'message': 'Q000 Single quotes found but double quotes preferred'},
+            {'col': 24, 'line': 2, 'message': 'Q000 Single quotes found but double quotes preferred'},
+            {'col': 24, 'line': 3, 'message': 'Q000 Single quotes found but double quotes preferred'},
         ])
 
     def test_noqa_singles(self):
@@ -171,11 +162,10 @@ class SinglesAliasTestChecks(TestCase):
         self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [])
 
         singles_checker = QuoteChecker(None, filename=get_absolute_path('data/singles.py'))
-        message = 'Q000 Single quoted string literal found but double quotes are preferred'
         self.assertEqual(list(singles_checker.get_quotes_errors(singles_checker.get_file_contents())), [
-            {'col': 24, 'line': 1, 'message': message},
-            {'col': 24, 'line': 2, 'message': message},
-            {'col': 24, 'line': 3, 'message': message},
+            {'col': 24, 'line': 1, 'message': 'Q000 Single quotes found but double quotes preferred'},
+            {'col': 24, 'line': 2, 'message': 'Q000 Single quotes found but double quotes preferred'},
+            {'col': 24, 'line': 3, 'message': 'Q000 Single quotes found but double quotes preferred'},
         ])
 
 
@@ -187,9 +177,8 @@ class MultilineTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
-        message = 'Q001 Double quoted multiline string literal found but single quotes are preferred'
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 4, 'line': 10, 'message': message},
+            {'col': 4, 'line': 10, 'message': 'Q001 Single quote multiline found but double quotes preferred'},
         ])
 
     def test_singles_alias(self):
@@ -199,9 +188,8 @@ class MultilineTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
-        message = 'Q001 Double quoted multiline string literal found but single quotes are preferred'
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 4, 'line': 10, 'message': message},
+            {'col': 4, 'line': 10, 'message': 'Q001 Single quote multiline found but double quotes preferred'},
         ])
 
     def test_doubles(self):
@@ -211,9 +199,8 @@ class MultilineTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
-        message = 'Q001 Single quoted multiline string literal found but double quotes are preferred'
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': message},
+            {'col': 4, 'line': 1, 'message': 'Q001 Double quote multiline found but single quotes preferred'},
         ])
 
     def test_doubles_alias(self):
@@ -223,9 +210,8 @@ class MultilineTestChecks(TestCase):
         QuoteChecker.parse_options(Options)
 
         multiline_checker = QuoteChecker(None, filename=get_absolute_path('data/multiline_string.py'))
-        message = 'Q001 Single quoted multiline string literal found but double quotes are preferred'
         self.assertEqual(list(multiline_checker.get_quotes_errors(multiline_checker.get_file_contents())), [
-            {'col': 4, 'line': 1, 'message': message},
+            {'col': 4, 'line': 1, 'message': 'Q001 Double quote multiline found but single quotes preferred'},
         ])
 
 
