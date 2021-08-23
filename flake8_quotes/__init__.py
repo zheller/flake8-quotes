@@ -27,11 +27,13 @@ class QuoteChecker(object):
         "'": {
             'good_single': "'",
             'bad_single': '"',
+            'single_error_message': 'Double quotes found but single quotes preferred',
         },
         # When user wants only double quotes
         '"': {
             'good_single': '"',
             'bad_single': "'",
+            'single_error_message': 'Single quotes found but double quotes preferred',
         },
     }
     # Provide aliases for Windows CLI support
@@ -44,11 +46,13 @@ class QuoteChecker(object):
             'good_multiline': "'''",
             'good_multiline_ending': '\'"""',
             'bad_multiline': '"""',
+            'multiline_error_message': 'Double quote multiline found but single quotes preferred',
         },
         '"': {
             'good_multiline': '"""',
             'good_multiline_ending': '"\'\'\'',
             'bad_multiline': "'''",
+            'multiline_error_message': 'Single quote multiline found but double quotes preferred',
         },
     }
     # Provide Windows CLI and multi-quote aliases
@@ -61,10 +65,12 @@ class QuoteChecker(object):
         "'": {
             'good_docstring': "'''",
             'bad_docstring': '"""',
+            'docstring_error_message': 'Double quote docstring found but single quotes preferred',
         },
         '"': {
             'good_docstring': '"""',
             'bad_docstring': "'''",
+            'docstring_error_message': 'Single quote docstring found but double quotes preferred',
         },
     }
     # Provide Windows CLI and docstring-quote aliases
@@ -221,7 +227,7 @@ class QuoteChecker(object):
                     continue
 
                 yield {
-                    'message': 'Q002 Remove bad quotes from docstring',
+                    'message': 'Q002 ' + self.config['docstring_error_message'],
                     'line': start_row,
                     'col': start_col,
                 }
@@ -242,7 +248,7 @@ class QuoteChecker(object):
 
                 # Output our error
                 yield {
-                    'message': 'Q001 Remove bad quotes from multiline string',
+                    'message': 'Q001 ' + self.config['multiline_error_message'],
                     'line': start_row,
                     'col': start_col,
                 }
@@ -276,7 +282,7 @@ class QuoteChecker(object):
                 # If not preferred type, only allow use to avoid escapes.
                 if not self.config['good_single'] in string_contents:
                     yield {
-                        'message': 'Q000 Remove bad quotes',
+                        'message': 'Q000 ' + self.config['single_error_message'],
                         'line': start_row,
                         'col': start_col,
                     }
