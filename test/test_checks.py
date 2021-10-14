@@ -11,6 +11,10 @@ class TestChecks(TestCase):
 
 
 class TestFlake8Stdin(TestCase):
+    def setUp(self):
+        if not hasattr(self, 'assertRegex'):
+            self.assertRegex = self.assertRegexpMatches
+
     def test_stdin(self):
         """Test using stdin."""
         filepath = get_absolute_path('data/doubles.py')
@@ -22,13 +26,13 @@ class TestFlake8Stdin(TestCase):
         stdout_lines = stdout.splitlines()
         self.assertEqual(stderr, b'')
         self.assertEqual(len(stdout_lines), 3)
-        self.assertRegexpMatches(
+        self.assertRegex(
             stdout_lines[0],
             b'stdin:1:(24|25): Q000 Double quotes found but single quotes preferred')
-        self.assertRegexpMatches(
+        self.assertRegex(
             stdout_lines[1],
             b'stdin:2:(24|25): Q000 Double quotes found but single quotes preferred')
-        self.assertRegexpMatches(
+        self.assertRegex(
             stdout_lines[2],
             b'stdin:3:(24|25): Q000 Double quotes found but single quotes preferred')
 
