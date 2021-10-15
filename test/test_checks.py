@@ -11,10 +11,6 @@ class TestChecks(TestCase):
 
 
 class TestFlake8Stdin(TestCase):
-    def setUp(self):
-        if not hasattr(self, 'assertRegex'):
-            self.assertRegex = self.assertRegexpMatches
-
     def test_stdin(self):
         """Test using stdin."""
         filepath = get_absolute_path('data/doubles.py')
