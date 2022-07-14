@@ -50,7 +50,10 @@ Q003 Change outer quotes to avoid escaping inner quotes
 Configuration
 -------------
 
-By default, we expect single quotes (') and look for unwanted double quotes ("). To expect double quotes (") and find unwanted single quotes ('), use the CLI option:
+By default, we expect single quotes (') and look for unwanted double quotes ("), and
+expect double quotes (") in docstring. 
+
+To expect double quotes (") and find unwanted single quotes ('), use the CLI option:
 
 .. code:: shell
 
