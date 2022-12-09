@@ -107,19 +107,19 @@ class QuoteChecker(object):
     @classmethod
     def add_options(cls, parser):
         cls._register_opt(parser, '--quotes', action='store',
-                          parse_from_config=True, type='choice',
+                          parse_from_config=True,
                           choices=sorted(cls.INLINE_QUOTES.keys()),
                           help='Deprecated alias for `--inline-quotes`')
         cls._register_opt(parser, '--inline-quotes', default="'",
-                          action='store', parse_from_config=True, type='choice',
+                          action='store', parse_from_config=True,
                           choices=sorted(cls.INLINE_QUOTES.keys()),
                           help="Quote to expect in all files (default: ')")
         cls._register_opt(parser, '--multiline-quotes', default=None, action='store',
-                          parse_from_config=True, type='choice',
+                          parse_from_config=True,
                           choices=sorted(cls.MULTILINE_QUOTES.keys()),
                           help='Quote to expect in all files (default: """)')
         cls._register_opt(parser, '--docstring-quotes', default=None, action='store',
-                          parse_from_config=True, type='choice',
+                          parse_from_config=True,
                           choices=sorted(cls.DOCSTRING_QUOTES.keys()),
                           help='Quote to expect in all files (default: """)')
         cls._register_opt(parser, '--avoid-escape', default=None, action='store_true',
