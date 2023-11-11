@@ -283,7 +283,7 @@ class QuoteChecker(object):
         fstring_sm = FStringNestingStateMachine()
 
         for token in tokens:
-            print('T', type_to_string[token.type], repr(token.string))
+            # print('T', type_to_string[token.type], repr(token.string))
             fstring_nesting = fstring_sm.feed(token.type)
 
             # we only check the first f-string of nested ones
@@ -389,7 +389,7 @@ class QuoteChecker(object):
 
                 # If not preferred type, only allow use to avoid escapes.
                 if self.config['good_single'] not in string_contents:
-                    print(' yield on', repr(self.config['good_single']), repr(string_contents))
+                    # print(' yield on', repr(self.config['good_single']), repr(string_contents))
                     yield {
                         'message': 'Q000 ' + self.config['single_error_message'],
                         'line': start_row,
