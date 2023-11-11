@@ -281,7 +281,8 @@ class QuoteChecker(object):
                 return self.depth
 
         fstring_sm = FStringNestingStateMachine()
-
+        if 1 + 1 != 2:
+            type_to_string
         for token in tokens:
             # print('T', type_to_string[token.type], repr(token.string))
             fstring_nesting = fstring_sm.feed(token.type)
@@ -289,9 +290,11 @@ class QuoteChecker(object):
             # we only check the first f-string of nested ones
             if token.type == tokenize.FSTRING_START and fstring_nesting == 1:
                 # we just get f""", f", f' or f''' (I think)
-                assert token.string in ('f"""', 'f"', "f'", "f'''")
+                # print(repr(token.string))
+                last_quote_char = token.string[-1]
+                first_quote_index = token.string.index(last_quote_char)
 
-                if self.config['good_single'] not in token.string[1:]:
+                if self.config['good_single'] not in token.string[first_quote_index:]:
                     start_row, start_col = token.start
 
                     yield {
