@@ -195,7 +195,116 @@ class QuoteChecker(object):
         tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
         docstring_tokens = get_docstring_tokens(tokens)
 
+        type_to_string = {
+            tokenize.ENDMARKER: 'ENDMARKER',
+            tokenize.NAME: 'NAME',
+            tokenize.NUMBER: 'NUMBER',
+            tokenize.STRING: 'STRING',
+            tokenize.NEWLINE: 'NEWLINE',
+            tokenize.INDENT: 'INDENT',
+            tokenize.DEDENT: 'DEDENT',
+            tokenize.LPAR: 'LPAR',
+            tokenize.RPAR: 'RPAR',
+            tokenize.LSQB: 'LSQB',
+            tokenize.RSQB: 'RSQB',
+            tokenize.COLON: 'COLON',
+            tokenize.COMMA: 'COMMA',
+            tokenize.SEMI: 'SEMI',
+            tokenize.PLUS: 'PLUS',
+            tokenize.MINUS: 'MINUS',
+            tokenize.STAR: 'STAR',
+            tokenize.SLASH: 'SLASH',
+            tokenize.VBAR: 'VBAR',
+            tokenize.AMPER: 'AMPER',
+            tokenize.LESS: 'LESS',
+            tokenize.GREATER: 'GREATER',
+            tokenize.EQUAL: 'EQUAL',
+            tokenize.DOT: 'DOT',
+            tokenize.PERCENT: 'PERCENT',
+            tokenize.LBRACE: 'LBRACE',
+            tokenize.RBRACE: 'RBRACE',
+            tokenize.EQEQUAL: 'EQEQUAL',
+            tokenize.NOTEQUAL: 'NOTEQUAL',
+            tokenize.LESSEQUAL: 'LESSEQUAL',
+            tokenize.GREATEREQUAL: 'GREATEREQUAL',
+            tokenize.TILDE: 'TILDE',
+            tokenize.CIRCUMFLEX: 'CIRCUMFLEX',
+            tokenize.LEFTSHIFT: 'LEFTSHIFT',
+            tokenize.RIGHTSHIFT: 'RIGHTSHIFT',
+            tokenize.DOUBLESTAR: 'DOUBLESTAR',
+            tokenize.PLUSEQUAL: 'PLUSEQUAL',
+            tokenize.MINEQUAL: 'MINEQUAL',
+            tokenize.STAREQUAL: 'STAREQUAL',
+            tokenize.SLASHEQUAL: 'SLASHEQUAL',
+            tokenize.PERCENTEQUAL: 'PERCENTEQUAL',
+            tokenize.AMPEREQUAL: 'AMPEREQUAL',
+            tokenize.VBAREQUAL: 'VBAREQUAL',
+            tokenize.CIRCUMFLEXEQUAL: 'CIRCUMFLEXEQUAL',
+            tokenize.LEFTSHIFTEQUAL: 'LEFTSHIFTEQUAL',
+            tokenize.RIGHTSHIFTEQUAL: 'RIGHTSHIFTEQUAL',
+            tokenize.DOUBLESTAREQUAL: 'DOUBLESTAREQUAL',
+            tokenize.DOUBLESLASH: 'DOUBLESLASH',
+            tokenize.DOUBLESLASHEQUAL: 'DOUBLESLASHEQUAL',
+            tokenize.AT: 'AT',
+            tokenize.ATEQUAL: 'ATEQUAL',
+            tokenize.RARROW: 'RARROW',
+            tokenize.ELLIPSIS: 'ELLIPSIS',
+            tokenize.COLONEQUAL: 'COLONEQUAL',
+            tokenize.EXCLAMATION: 'EXCLAMATION',
+            tokenize.OP: 'OP',
+            tokenize.AWAIT: 'AWAIT',
+            tokenize.ASYNC: 'ASYNC',
+            tokenize.TYPE_IGNORE: 'TYPE_IGNORE',
+            tokenize.TYPE_COMMENT: 'TYPE_COMMENT',
+            tokenize.SOFT_KEYWORD: 'SOFT_KEYWORD',
+            tokenize.FSTRING_START: 'FSTRING_START',
+            tokenize.FSTRING_MIDDLE: 'FSTRING_MIDDLE',
+            tokenize.FSTRING_END: 'FSTRING_END',
+            tokenize.COMMENT: 'COMMENT',
+            tokenize.NL: 'NL',
+            tokenize.ERRORTOKEN: 'ERRORTOKEN',
+            tokenize.ENCODING: 'ENCODING',
+            tokenize.N_TOKENS: 'N_TOKENS',
+            tokenize.NT_OFFSET: 'NT_OFFSET',
+        }
+
+        class FStringNestingStateMachine:
+            def __init__(self):
+                self.depth = 0
+
+            def feed(self, token_type):
+                if token_type == tokenize.FSTRING_START:
+                    self.depth += 1
+                elif token_type == tokenize.FSTRING_END:
+                    self.depth -= 1
+
+                return self.depth
+
+        fstring_sm = FStringNestingStateMachine()
+
         for token in tokens:
+            print('T', type_to_string[token.type], repr(token.string))
+            fstring_nesting = fstring_sm.feed(token.type)
+
+            # we only check the first f-string of nested ones
+            if token.type == tokenize.FSTRING_START and fstring_nesting == 1:
+                # we just get f""", f", f' or f''' (I think)
+                assert token.string in ('f"""', 'f"', "f'", "f'''")
+
+                if self.config['good_single'] not in token.string[1:]:
+                    start_row, start_col = token.start
+
+                    yield {
+                        'message': 'Q000 ' + self.config['single_error_message'],
+                        'line': start_row,
+                        'col': start_col,
+                    }
+
+                continue
+
+            # if we are inside an f-string, we don't check anything
+            if fstring_nesting > 0:
+                continue
 
             if token.type != tokenize.STRING:
                 # ignore non strings
@@ -265,7 +374,6 @@ class QuoteChecker(object):
                 #   "\"This\" is a 'string'" -> Good
 
                 string_contents = unprefixed_string[1:-1]
-
                 # If string preferred type, check for escapes
                 if last_quote_char == self.config['good_single']:
                     if not self.config['avoid_escape'] or 'r' in prefix:
@@ -280,7 +388,8 @@ class QuoteChecker(object):
                     continue
 
                 # If not preferred type, only allow use to avoid escapes.
-                if not self.config['good_single'] in string_contents:
+                if self.config['good_single'] not in string_contents:
+                    print(' yield on', repr(self.config['good_single']), repr(string_contents))
                     yield {
                         'message': 'Q000 ' + self.config['single_error_message'],
                         'line': start_row,
