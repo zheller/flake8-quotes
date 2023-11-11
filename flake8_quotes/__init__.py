@@ -1,4 +1,5 @@
 import optparse
+import sys
 import tokenize
 import warnings
 
@@ -17,6 +18,8 @@ except ImportError:
 from flake8_quotes.__about__ import __version__
 from flake8_quotes.docstring_detection import get_docstring_tokens
 
+
+_IS_PEP701 = sys.version_info[:2] >= (3, 12)
 
 class QuoteChecker(object):
     name = __name__
@@ -195,123 +198,30 @@ class QuoteChecker(object):
         tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
         docstring_tokens = get_docstring_tokens(tokens)
 
-        type_to_string = {
-            tokenize.ENDMARKER: 'ENDMARKER',
-            tokenize.NAME: 'NAME',
-            tokenize.NUMBER: 'NUMBER',
-            tokenize.STRING: 'STRING',
-            tokenize.NEWLINE: 'NEWLINE',
-            tokenize.INDENT: 'INDENT',
-            tokenize.DEDENT: 'DEDENT',
-            tokenize.LPAR: 'LPAR',
-            tokenize.RPAR: 'RPAR',
-            tokenize.LSQB: 'LSQB',
-            tokenize.RSQB: 'RSQB',
-            tokenize.COLON: 'COLON',
-            tokenize.COMMA: 'COMMA',
-            tokenize.SEMI: 'SEMI',
-            tokenize.PLUS: 'PLUS',
-            tokenize.MINUS: 'MINUS',
-            tokenize.STAR: 'STAR',
-            tokenize.SLASH: 'SLASH',
-            tokenize.VBAR: 'VBAR',
-            tokenize.AMPER: 'AMPER',
-            tokenize.LESS: 'LESS',
-            tokenize.GREATER: 'GREATER',
-            tokenize.EQUAL: 'EQUAL',
-            tokenize.DOT: 'DOT',
-            tokenize.PERCENT: 'PERCENT',
-            tokenize.LBRACE: 'LBRACE',
-            tokenize.RBRACE: 'RBRACE',
-            tokenize.EQEQUAL: 'EQEQUAL',
-            tokenize.NOTEQUAL: 'NOTEQUAL',
-            tokenize.LESSEQUAL: 'LESSEQUAL',
-            tokenize.GREATEREQUAL: 'GREATEREQUAL',
-            tokenize.TILDE: 'TILDE',
-            tokenize.CIRCUMFLEX: 'CIRCUMFLEX',
-            tokenize.LEFTSHIFT: 'LEFTSHIFT',
-            tokenize.RIGHTSHIFT: 'RIGHTSHIFT',
-            tokenize.DOUBLESTAR: 'DOUBLESTAR',
-            tokenize.PLUSEQUAL: 'PLUSEQUAL',
-            tokenize.MINEQUAL: 'MINEQUAL',
-            tokenize.STAREQUAL: 'STAREQUAL',
-            tokenize.SLASHEQUAL: 'SLASHEQUAL',
-            tokenize.PERCENTEQUAL: 'PERCENTEQUAL',
-            tokenize.AMPEREQUAL: 'AMPEREQUAL',
-            tokenize.VBAREQUAL: 'VBAREQUAL',
-            tokenize.CIRCUMFLEXEQUAL: 'CIRCUMFLEXEQUAL',
-            tokenize.LEFTSHIFTEQUAL: 'LEFTSHIFTEQUAL',
-            tokenize.RIGHTSHIFTEQUAL: 'RIGHTSHIFTEQUAL',
-            tokenize.DOUBLESTAREQUAL: 'DOUBLESTAREQUAL',
-            tokenize.DOUBLESLASH: 'DOUBLESLASH',
-            tokenize.DOUBLESLASHEQUAL: 'DOUBLESLASHEQUAL',
-            tokenize.AT: 'AT',
-            tokenize.ATEQUAL: 'ATEQUAL',
-            tokenize.RARROW: 'RARROW',
-            tokenize.ELLIPSIS: 'ELLIPSIS',
-            tokenize.COLONEQUAL: 'COLONEQUAL',
-            tokenize.EXCLAMATION: 'EXCLAMATION',
-            tokenize.OP: 'OP',
-            tokenize.AWAIT: 'AWAIT',
-            tokenize.ASYNC: 'ASYNC',
-            tokenize.TYPE_IGNORE: 'TYPE_IGNORE',
-            tokenize.TYPE_COMMENT: 'TYPE_COMMENT',
-            tokenize.SOFT_KEYWORD: 'SOFT_KEYWORD',
-            tokenize.FSTRING_START: 'FSTRING_START',
-            tokenize.FSTRING_MIDDLE: 'FSTRING_MIDDLE',
-            tokenize.FSTRING_END: 'FSTRING_END',
-            tokenize.COMMENT: 'COMMENT',
-            tokenize.NL: 'NL',
-            tokenize.ERRORTOKEN: 'ERRORTOKEN',
-            tokenize.ENCODING: 'ENCODING',
-            tokenize.N_TOKENS: 'N_TOKENS',
-            tokenize.NT_OFFSET: 'NT_OFFSET',
-        }
+        fstring_nesting = 0
 
-        class FStringNestingStateMachine:
-            def __init__(self):
-                self.depth = 0
-
-            def feed(self, token_type):
-                if token_type == tokenize.FSTRING_START:
-                    self.depth += 1
-                elif token_type == tokenize.FSTRING_END:
-                    self.depth -= 1
-
-                return self.depth
-
-        fstring_sm = FStringNestingStateMachine()
-        if 1 + 1 != 2:
-            type_to_string
         for token in tokens:
-            # print('T', type_to_string[token.type], repr(token.string))
-            fstring_nesting = fstring_sm.feed(token.type)
+            if _IS_PEP701:
+                if token.type == tokenize.FSTRING_START:
+                    fstring_nesting += 1
+                elif token.type == tokenize.FSTRING_END:
+                    fstring_nesting -= 1
 
-            # we only check the first f-string of nested ones
-            if token.type == tokenize.FSTRING_START and fstring_nesting == 1:
-                # we just get f""", f", f' or f''' (I think)
-                # print(repr(token.string))
-                last_quote_char = token.string[-1]
-                first_quote_index = token.string.index(last_quote_char)
+                # we don't check string-literals if they are inside f-strings
+                if token.type == tokenize.STRING and fstring_nesting > 0:
+                    continue
 
-                if self.config['good_single'] not in token.string[first_quote_index:]:
-                    start_row, start_col = token.start
+                # we only check the first f-string start, never nested ones
+                if token.type == tokenize.FSTRING_START and fstring_nesting != 1:
+                    continue
 
-                    yield {
-                        'message': 'Q000 ' + self.config['single_error_message'],
-                        'line': start_row,
-                        'col': start_col,
-                    }
-
-                continue
-
-            # if we are inside an f-string, we don't check anything
-            if fstring_nesting > 0:
-                continue
-
-            if token.type != tokenize.STRING:
-                # ignore non strings
-                continue
+                if token.type not in (tokenize.STRING, tokenize.FSTRING_START):
+                    # ignore non strings
+                    continue
+            else:
+                if token.type != tokenize.STRING:
+                    # ignore non strings
+                    continue
 
             # Remove any prefixes in strings like `u` from `u"foo"`
             # DEV: `last_quote_char` is 1 character, even for multiline strings
