@@ -21,6 +21,7 @@ from flake8_quotes.docstring_detection import get_docstring_tokens
 
 _IS_PEP701 = sys.version_info[:2] >= (3, 12)
 
+
 class QuoteChecker(object):
     name = __name__
     version = __version__
