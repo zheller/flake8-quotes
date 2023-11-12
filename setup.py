@@ -29,6 +29,7 @@ setup(
     version=about['__version__'],
     install_requires=[
         'flake8',
+        'setuptools',
     ],
     url='http://github.com/zheller/flake8-quotes/',
     long_description=LONG_DESCRIPTION,
