@@ -132,6 +132,9 @@ class QuoteChecker(object):
         cls._register_opt(parser, '--no-avoid-escape', dest='avoid_escape', default=None, action='store_false',
                           parse_from_config=False,
                           help='Disable avoiding escaping same quotes in inline strings')
+        cls._register_opt(parser, '--check-inside-f-strings', dest='check_inside_f_strings', default=False, action='store_true',
+                          parse_from_config=False,
+                          help='Check strings inside f-strings, when PEP701 is active (Python 3.12+)')
 
     @classmethod
     def parse_options(cls, options):
@@ -170,6 +173,12 @@ class QuoteChecker(object):
         else:
             cls.config.update({'avoid_escape': True})
 
+        # If check inside f-strings specified, add to config
+        if hasattr(options, 'check_inside_f_strings') and options.check_inside_f_strings is not None:
+            cls.config.update({'check_inside_f_strings': options.check_inside_f_strings})
+        else:
+            cls.config.update({'check_inside_f_strings': False})
+
     def get_file_contents(self):
         if self.filename in ('stdin', '-', None):
             return stdin_get_value().splitlines(True)
@@ -199,24 +208,45 @@ class QuoteChecker(object):
         tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
         docstring_tokens = get_docstring_tokens(tokens)
 
+        fstring_start = 0
         fstring_nesting = 0
+        fstring_buffer = []
 
         for token in tokens:
+            is_docstring = token in docstring_tokens
+
             if _IS_PEP701:
                 if token.type == tokenize.FSTRING_START:
+                    if fstring_nesting == 0:
+                        fstring_start = token.start
+
                     fstring_nesting += 1
                 elif token.type == tokenize.FSTRING_END:
                     fstring_nesting -= 1
 
-                # we don't check string-literals if they are inside f-strings
-                if token.type == tokenize.STRING and fstring_nesting > 0:
+                if token.type in (tokenize.FSTRING_START, tokenize.FSTRING_END) or fstring_nesting > 0:
+                    fstring_buffer.append(token.string)
+
+                # if we have reached the end of a top-level f-string
+                if token.type == tokenize.FSTRING_END and fstring_nesting == 0:
+                    # condiditionally check it as a whole string
+                    if not self.config['check_inside_f_strings']:
+                        yield from self._check_string(''.join(fstring_buffer), fstring_start, is_docstring)
+
+                    fstring_buffer[:] = []
                     continue
 
-                # we only check the first f-string start, never nested ones
-                if token.type == tokenize.FSTRING_START and fstring_nesting != 1:
-                    continue
+                # optionally check string-literals if they are inside f-strings
+                if token.type == tokenize.STRING:
+                    if fstring_nesting > 0 and not self.config['check_inside_f_strings']:
+                        continue
 
-                if token.type not in (tokenize.STRING, tokenize.FSTRING_START):
+                # we always check top-level f-strings, and optionally nested ones
+                if token.type == tokenize.FSTRING_START:
+                    if fstring_nesting != 1 and not self.config['check_inside_f_strings']:
+                        continue
+
+                if token.type not in (tokenize.STRING, tokenize.FSTRING_START, tokenize.FSTRING_END):
                     # ignore non strings
                     continue
             else:
@@ -224,91 +254,94 @@ class QuoteChecker(object):
                     # ignore non strings
                     continue
 
-            # Remove any prefixes in strings like `u` from `u"foo"`
-            # DEV: `last_quote_char` is 1 character, even for multiline strings
-            #   `"foo"`   -> `"foo"`
-            #   `b"foo"`  -> `"foo"`
-            #   `br"foo"` -> `"foo"`
-            #   `b"""foo"""` -> `"""foo"""`
-            last_quote_char = token.string[-1]
-            first_quote_index = token.string.index(last_quote_char)
-            prefix = token.string[:first_quote_index].lower()
-            unprefixed_string = token.string[first_quote_index:]
+            if fstring_nesting == 0 or self.config['check_inside_f_strings']:
+                yield from self._check_string(token.string, token.start, is_docstring)
 
-            # Determine if our string is multiline-based
-            #   "foo"[0] * 3 = " * 3 = """
-            #   "foo"[0:3] = "fo
-            #   """foo"""[0:3] = """
-            is_docstring = token in docstring_tokens
-            is_multiline_string = unprefixed_string[0] * 3 == unprefixed_string[0:3]
-            start_row, start_col = token.start
+    def _check_string(self, token_string, token_start, is_docstring):
+        # Remove any prefixes in strings like `u` from `u"foo"`
+        # DEV: `last_quote_char` is 1 character, even for multiline strings
+        #   `"foo"`   -> `"foo"`
+        #   `b"foo"`  -> `"foo"`
+        #   `br"foo"` -> `"foo"`
+        #   `b"""foo"""` -> `"""foo"""`
+        last_quote_char = token_string[-1]
+        first_quote_index = token_string.index(last_quote_char)
+        prefix = token_string[:first_quote_index].lower()
+        unprefixed_string = token_string[first_quote_index:]
 
-            # If our string is a docstring
-            # DEV: Docstring quotes must come before multiline quotes as it can as a multiline quote
-            if is_docstring:
-                if self.config['good_docstring'] in unprefixed_string:
-                    continue
+        # Determine if our string is multiline-based
+        #   "foo"[0] * 3 = " * 3 = """
+        #   "foo"[0:3] = "fo
+        #   """foo"""[0:3] = """
+        is_multiline_string = unprefixed_string[0] * 3 == unprefixed_string[0:3]
+        start_row, start_col = token_start
 
-                yield {
-                    'message': 'Q002 ' + self.config['docstring_error_message'],
-                    'line': start_row,
-                    'col': start_col,
-                }
-            # Otherwise if our string is multiline
-            elif is_multiline_string:
-                # If our string is or containing a known good string, then ignore it
-                #   (""")foo""" -> good (continue)
-                #   '''foo(""")''' -> good (continue)
-                #   (''')foo''' -> possibly bad
-                if self.config['good_multiline'] in unprefixed_string:
-                    continue
+        # If our string is a docstring
+        # DEV: Docstring quotes must come before multiline quotes as it can as a multiline quote
+        if is_docstring:
+            if self.config['good_docstring'] in unprefixed_string:
+                return
 
-                # If our string ends with a known good ending, then ignore it
-                #   '''foo("''') -> good (continue)
-                #     Opposite, """foo"""", would break our parser (cannot handle """" ending)
-                if unprefixed_string.endswith(self.config['good_multiline_ending']):
-                    continue
+            yield {
+                'message': 'Q002 ' + self.config['docstring_error_message'],
+                'line': start_row,
+                'col': start_col,
+            }
+        # Otherwise if our string is multiline
+        elif is_multiline_string:
+            # If our string is or containing a known good string, then ignore it
+            #   (""")foo""" -> good (continue)
+            #   '''foo(""")''' -> good (continue)
+            #   (''')foo''' -> possibly bad
+            if self.config['good_multiline'] in unprefixed_string:
+                return
 
-                # Output our error
-                yield {
-                    'message': 'Q001 ' + self.config['multiline_error_message'],
-                    'line': start_row,
-                    'col': start_col,
-                }
-            # Otherwise (string is inline quote)
-            else:
-                #   'This is a string'       -> Good
-                #   'This is a "string"'     -> Good
-                #   'This is a \"string\"'   -> Good
-                #   'This is a \'string\''   -> Bad (Q003)  Escaped inner quotes
-                #   '"This" is a \'string\'' -> Good        Changing outer quotes would not avoid escaping
-                #   "This is a string"       -> Bad (Q000)
-                #   "This is a 'string'"     -> Good        Avoids escaped inner quotes
-                #   "This is a \"string\""   -> Bad (Q000)
-                #   "\"This\" is a 'string'" -> Good
+            # If our string ends with a known good ending, then ignore it
+            #   '''foo("''') -> good (continue)
+            #     Opposite, """foo"""", would break our parser (cannot handle """" ending)
+            if unprefixed_string.endswith(self.config['good_multiline_ending']):
+                return
 
-                string_contents = unprefixed_string[1:-1]
-                # If string preferred type, check for escapes
-                if last_quote_char == self.config['good_single']:
-                    if not self.config['avoid_escape'] or 'r' in prefix:
-                        continue
-                    if (self.config['good_single'] in string_contents and
-                            not self.config['bad_single'] in string_contents):
-                        yield {
-                            'message': 'Q003 Change outer quotes to avoid escaping inner quotes',
-                            'line': start_row,
-                            'col': start_col,
-                        }
-                    continue
+            # Output our error
+            yield {
+                'message': 'Q001 ' + self.config['multiline_error_message'],
+                'line': start_row,
+                'col': start_col,
+            }
+        # Otherwise (string is inline quote)
+        else:
+            #   'This is a string'       -> Good
+            #   'This is a "string"'     -> Good
+            #   'This is a \"string\"'   -> Good
+            #   'This is a \'string\''   -> Bad (Q003)  Escaped inner quotes
+            #   '"This" is a \'string\'' -> Good        Changing outer quotes would not avoid escaping
+            #   "This is a string"       -> Bad (Q000)
+            #   "This is a 'string'"     -> Good        Avoids escaped inner quotes
+            #   "This is a \"string\""   -> Bad (Q000)
+            #   "\"This\" is a 'string'" -> Good
 
-                # If not preferred type, only allow use to avoid escapes.
-                if self.config['good_single'] not in string_contents:
-                    # print(' yield on', repr(self.config['good_single']), repr(string_contents))
+            string_contents = unprefixed_string[1:-1]
+            # If string preferred type, check for escapes
+            if last_quote_char == self.config['good_single']:
+                if not self.config['avoid_escape'] or 'r' in prefix:
+                    return
+                if (self.config['good_single'] in string_contents and
+                        not self.config['bad_single'] in string_contents):
                     yield {
-                        'message': 'Q000 ' + self.config['single_error_message'],
+                        'message': 'Q003 Change outer quotes to avoid escaping inner quotes',
                         'line': start_row,
                         'col': start_col,
                     }
+                return
+
+
+            # If not preferred type, only allow use to avoid escapes.
+            if self.config['good_single'] not in string_contents:
+                yield {
+                    'message': 'Q000 ' + self.config['single_error_message'],
+                    'line': start_row,
+                    'col': start_col,
+                }
 
 
 class Token:
