@@ -133,7 +133,7 @@ class QuoteChecker(object):
                           parse_from_config=False,
                           help='Disable avoiding escaping same quotes in inline strings')
         cls._register_opt(parser, '--check-inside-f-strings', dest='check_inside_f_strings', default=False, action='store_true',
-                          parse_from_config=False,
+                          parse_from_config=True,
                           help='Check strings inside f-strings, when PEP701 is active (Python 3.12+)')
 
     @classmethod
@@ -207,54 +207,57 @@ class QuoteChecker(object):
     def get_quotes_errors(self, file_contents):
         tokens = [Token(t) for t in tokenize.generate_tokens(lambda L=iter(file_contents): next(L))]
         docstring_tokens = get_docstring_tokens(tokens)
+        # when PEP701 is enabled, we track when the token stream
+        # is passing over an f-string
 
-        fstring_start = 0
+        # the start of the current f-string (row, col)
+        fstring_start = None
+
+        # > 0 when we are inside an f-string token stream, since
+        # f-string can be arbitrarily nested, we need a counter
         fstring_nesting = 0
+
+        # the token.string part of all tokens inside the current
+        # f-string
         fstring_buffer = []
 
         for token in tokens:
             is_docstring = token in docstring_tokens
 
-            if _IS_PEP701:
-                if token.type == tokenize.FSTRING_START:
-                    if fstring_nesting == 0:
-                        fstring_start = token.start
-
-                    fstring_nesting += 1
-                elif token.type == tokenize.FSTRING_END:
-                    fstring_nesting -= 1
-
-                if token.type in (tokenize.FSTRING_START, tokenize.FSTRING_END) or fstring_nesting > 0:
-                    fstring_buffer.append(token.string)
-
-                # if we have reached the end of a top-level f-string
-                if token.type == tokenize.FSTRING_END and fstring_nesting == 0:
-                    # condiditionally check it as a whole string
-                    if not self.config['check_inside_f_strings']:
-                        yield from self._check_string(''.join(fstring_buffer), fstring_start, is_docstring)
-
-                    fstring_buffer[:] = []
-                    continue
-
-                # optionally check string-literals if they are inside f-strings
+            # non PEP701, we only check for STRING tokens
+            if not _IS_PEP701:
                 if token.type == tokenize.STRING:
-                    if fstring_nesting > 0 and not self.config['check_inside_f_strings']:
-                        continue
+                    yield from self._check_string(token.string, token.start, is_docstring)
 
-                # we always check top-level f-strings, and optionally nested ones
-                if token.type == tokenize.FSTRING_START:
-                    if fstring_nesting != 1 and not self.config['check_inside_f_strings']:
-                        continue
+                continue
 
-                if token.type not in (tokenize.STRING, tokenize.FSTRING_START, tokenize.FSTRING_END):
-                    # ignore non strings
+            # otherwise, we track all tokens for the current f-string
+            if token.type == tokenize.FSTRING_START:
+                if fstring_nesting == 0:
+                    fstring_start = token.start
+
+                fstring_nesting += 1
+                fstring_buffer.append(token.string)
+            elif token.type == tokenize.FSTRING_END:
+                fstring_nesting -= 1
+                fstring_buffer.append(token.string)
+            elif fstring_nesting > 0:
+                fstring_buffer.append(token.string)
+
+            # if we have reached the end of a top-level f-string, we check
+            # it as if it was a single string (pre PEP701 semantics) when
+            # check_inside_f_strings is false
+            if token.type == tokenize.FSTRING_END and fstring_nesting == 0:
+                token_string = ''.join(fstring_buffer)
+                fstring_buffer[:] = []
+
+                if not self.config['check_inside_f_strings']:
+                    yield from self._check_string(token_string, fstring_start, is_docstring)
                     continue
-            else:
-                if token.type != tokenize.STRING:
-                    # ignore non strings
-                    continue
 
-            if fstring_nesting == 0 or self.config['check_inside_f_strings']:
+            # otherwise, we check nested strings and f-strings, we don't
+            # check FSTRING_END since it should be legal if tokenize.FSTRING_START succeeded
+            if self.config['check_inside_f_strings'] and token.type in (tokenize.STRING, tokenize.FSTRING_START,):
                 yield from self._check_string(token.string, token.start, is_docstring)
 
     def _check_string(self, token_string, token_start, is_docstring):
