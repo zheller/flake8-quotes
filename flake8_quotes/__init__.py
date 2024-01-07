@@ -132,7 +132,8 @@ class QuoteChecker(object):
         cls._register_opt(parser, '--no-avoid-escape', dest='avoid_escape', default=None, action='store_false',
                           parse_from_config=False,
                           help='Disable avoiding escaping same quotes in inline strings')
-        cls._register_opt(parser, '--check-inside-f-strings', dest='check_inside_f_strings', default=False, action='store_true',
+        cls._register_opt(parser, '--check-inside-f-strings',
+                          dest='check_inside_f_strings', default=False, action='store_true',
                           parse_from_config=True,
                           help='Check strings inside f-strings, when PEP701 is active (Python 3.12+)')
 
@@ -336,7 +337,6 @@ class QuoteChecker(object):
                         'col': start_col,
                     }
                 return
-
 
             # If not preferred type, only allow use to avoid escapes.
             if self.config['good_single'] not in string_contents:
