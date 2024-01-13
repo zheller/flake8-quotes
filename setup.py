@@ -29,6 +29,7 @@ setup(
     version=about['__version__'],
     install_requires=[
         'flake8',
+        'setuptools',
     ],
     url='http://github.com/zheller/flake8-quotes/',
     long_description=LONG_DESCRIPTION,
@@ -61,6 +62,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Software Development :: Quality Assurance',
     ]
