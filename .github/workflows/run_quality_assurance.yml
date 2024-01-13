@@ -1,0 +1,25 @@
+name: Run Quality Assurance
+
+on: push
+
+jobs:
+  run-quality-assurance:
+    name: Run Quality Assurance
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Installation
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+      - name: Test Script
+        run: ./test.sh
+
