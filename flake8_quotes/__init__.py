@@ -256,14 +256,11 @@ class QuoteChecker(object):
                     yield from self._check_string(token_string, fstring_start, is_docstring)
                     continue
 
-            # otherwise, we check nested strings and f-strings, we don't
-            # check FSTRING_END since it should be legal if tokenize.FSTRING_START succeeded
-            if token.type in (tokenize.STRING, tokenize.FSTRING_START,):
-                if fstring_nesting > 0:
-                    if self.config['check_inside_f_strings']:
-                        yield from self._check_string(token.string, token.start, is_docstring)
-                else:
-                    yield from self._check_string(token.string, token.start, is_docstring)
+            # we check strings normally if-and-only-if check_inside_f_strings is True,
+            # otherwise, we check the entire glued top-level f-string in the block above
+            if token.type in (tokenize.STRING,) and self.config['check_inside_f_strings']:
+                yield from self._check_string(token.string, token.start, is_docstring)
+                continue
 
     def _check_string(self, token_string, token_start, is_docstring):
         # Remove any prefixes in strings like `u` from `u"foo"`
