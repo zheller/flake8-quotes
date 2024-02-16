@@ -50,25 +50,37 @@ Q003 Change outer quotes to avoid escaping inner quotes
 Configuration
 -------------
 
-By default, we expect single quotes (') and look for unwanted double quotes ("). To expect double quotes (") and find unwanted single quotes ('), use the CLI option:
+By default, we expect single quotes (``'``) and look for unwanted double quotes (``"``).
+
+To expect double quotes (``"``) and find unwanted single quotes (``'``), use the CLI option:
 
 .. code:: shell
 
     flake8 --inline-quotes '"'
     # We also support "double" and "single"
     # flake8 --inline-quotes 'double'
-    #
-    # We also support configuration for multiline quotes
-    # flake8 --inline-quotes '"' --multiline-quotes "'"
-    # We also support "'''"
-    # flake8 --inline-quotes '"' --multiline-quotes "'''"
-    #
-    # We also support docstring quotes similarly
-    # flake8 --inline-quotes '"' --docstring-quotes "'"
-    # flake8 --inline-quotes '"' --docstring-quotes "'''"
 
-    # We also support disabling escaping quotes
-    # flake8 --no-avoid-escape
+Additionally, we expect multiline quotes and docstrings to use (``"""``) and look for unwanted (``'''``).
+
+To expect single quote versions (``'''``) and find unwanted doubble quote versions (``"""``), use the CLI option:
+
+.. code:: shell
+
+    # For multiline quotes:
+    flake8 --multiline-quotes "'''"
+    # We also support "'"
+    # flake8 "'"
+
+    # For docstrings:
+    flake8 --docstring-quotes "'''"
+    # Also supports "'" format
+    # flake8 --docstring-quotes "'"
+
+We also support disabling escaping quotes:
+
+.. code:: shell
+
+    flake8 --no-avoid-escape
 
 or configuration option in `tox.ini`/`setup.cfg`.
 
@@ -80,13 +92,13 @@ or configuration option in `tox.ini`/`setup.cfg`.
     # inline-quotes = double
     #
     # We also support configuration for multiline quotes
+    # multiline-quotes = ''''
+    # Also supports "'"
     # multiline-quotes = '
-    # We also support "'''"
-    # multiline-quotes = '''
     #
     # We also support docstring quotes similarly
-    # docstring-quotes = '
     # docstring-quotes = '''
+    # docstring-quotes = '
     #
     # We also support disabling escaping quotes
     # avoid-escape = False
