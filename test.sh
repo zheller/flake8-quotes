@@ -5,4 +5,4 @@ set -x
 
 # Run our linter and tests
 flake8 *.py flake8_quotes/ test/*.py
-python setup.py test $*
+pytest
