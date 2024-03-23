@@ -27,10 +27,7 @@ setup(
     author='Zachary Wright Heller',
     author_email='zheller@gmail.com',
     version=about['__version__'],
-    install_requires=[
-        'flake8',
-        'setuptools',
-    ],
+    install_requires=['flake8'],
     url='http://github.com/zheller/flake8-quotes/',
     long_description=LONG_DESCRIPTION,
     description='Flake8 lint for quotes.',
